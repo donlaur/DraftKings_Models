@@ -37,10 +37,10 @@ salary.cap = 50000
 
 
 # Path to write output file to on personal computer
-path.output = "C:/Users/Ming/Documents/FantasySports/output/MLB_lineup.csv"
+path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup.csv"
 
 # Path to read Draftkings player CSV file from
-path.players = "C:/Users/Ming/Documents/FantasySports/data/MLB_07212018.csv"
+path.players = "C:/Users/Ming/Documents/Fantasy_Models/data/MLB_07212018.csv"
 
 ## Read Draftkings CSV file and modify columns to create a clean dataframe
 
@@ -96,7 +96,12 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              shortstops, outfielders,
                              catchers, num.teams, hitters.teams,
                              num.games, hitters.games, pitchers.games,
-                             salary.cap) {
+                             salary.cap, players.variance, players.covariance,
+                             hitters.covariance) {
+  w = function(i, j) {
+    vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
+  }
+  
   m = MILPModel() %>%
     # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
     add_variable(hitters.lineup[i],
@@ -119,6 +124,11 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     # Two pitchers constraint
     add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
     
+    # Variance lower bound
+    add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
+                     sum_expr(colwise(players.variance[i]) * hitters.lineup[i], i = 1:num.hitters) +
+                     sum_expr(colwise(players.variance[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
+                     
     # One of each position besides outfielders
     add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
     add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
@@ -281,6 +291,14 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   print("Initializing ROI.plugin.symphony...")
   print("Generating lineups (this may take a while)...")
   
+  # Mock variance vector
+  players.variance = runif(num.hitters + num.pitchers)
+  
+  # Mock covariance matrix
+  players.covariance = matrix(runif((num.hitters + num.pitchers)^2), 
+                              nrow = (num.hitters + num.pitchers))
+  
+  hitters.covariance = matrix(runif(num.hitters^2), nrow = num.hitters)
   # Create a lineup
   tracer = matrix(rep(0, num.hitters + num.pitchers), nrow = 1)
   lineups = formulation(hitters, pitchers, tracer, num.overlap,
@@ -289,7 +307,8 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
-                        salary.cap)
+                        salary.cap, players.variance, players.covariance,
+                        hitters.covariance)
   lineups = matrix(lineups, nrow = 1)
   
   for(i in 1:(num.lineups - 1)) {
@@ -299,11 +318,12 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                          hitters.list[[4]], hitters.list[[5]],
                          hitters.list[[6]], num.teams, hitters.teams,
                          num.games, hitters.games, pitchers.games,
-                         salary.cap)
+                         salary.cap, players.variance, players.covariance,
+                         hitters.covariance)
     lineups = rbind(lineups, lineup)
   }
   
-  print("Sumdilamdam")
+  print("Lineups successfully generated!")
   
   return(lineups)
 }
@@ -345,4 +365,4 @@ df = create_lineups(num.lineups, num.overlap, nonstacked.lineup, salary.cap, hit
 ## ------------------------------------------------------------ ##
 
 
-lineups.to.csv(df, hitters, pitchers, path.output)
+# lineups.to.csv(df, hitters, pitchers, path.output)
