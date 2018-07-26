@@ -11,7 +11,6 @@ from selenium.webdriver.common.by import *
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup as BS
 import csv, time, os
-import urllib2 as readurl
 
 def main():
 	url = "http://www.espn.com/mlb/player/_/id/32355/nick-ahmed"
