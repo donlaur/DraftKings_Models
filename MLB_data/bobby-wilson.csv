@@ -1,0 +1,72 @@
+DATE,OPP,RESULT,AB,R,H,2B,3B,HR,RBI,BB,SO,SB,CS,OBP,SLG,OPS,AVG
+May 5,@ CHW,W 8-4,Did not play
+May 6,@ CHW,W 5-3,3,0,0,0,0,0,0,0,1,0,0,.000,.000,.000,.000
+May 7,@ STL,W 6-0,3,0,1,1,0,0,2,0,1,0,0,.143,.333,.476,.167
+May 8,@ STL,W 7-1,Did not play
+May 10,@ LAA,L 7-4,Did not play
+May 11,@ LAA,W 5-4,3,0,0,0,0,0,1,0,0,0,0,.091,.222,.313,.111
+May 12,@ LAA,W 5-3,Did not play
+May 13,@ LAA,L 2-1,3,0,0,0,0,0,0,1,3,0,0,.133,.167,.300,.083
+May 14,vs SEA,L 1-0,Did not play
+May 15,vs STL,W 4-1,3,1,1,0,0,1,2,0,1,0,0,.167,.400,.567,.133
+May 16,vs STL,L 7-5,Did not play
+May 18,vs MIL,L 8-3,4,0,1,0,0,0,0,0,1,0,0,.182,.368,.550,.158
+May 19,vs MIL,L 5-4,4,0,1,1,0,0,2,0,2,0,0,.192,.391,.583,.174
+May 20,vs MIL,W 3-1,Did not play
+May 21,vs DET,W 4-2,Did not play
+May 22,vs DET,W 6-0,Did not play
+May 23,vs DET,L 4-1,2,0,0,0,0,0,0,1,1,0,0,.207,.360,.567,.160
+May 25,@ SEA,L 2-1,Did not play
+May 26,@ SEA,L 4-3,Did not play
+May 27,@ SEA,L 3-1,3,0,0,0,0,0,0,0,0,0,0,.188,.321,.509,.143
+May 28,@ KC,W 8-5,Did not play
+May 29,@ KC,L 2-1,2,0,0,0,0,0,0,0,0,0,0,.176,.300,.476,.133
+May 30,@ KC,L 11-8,4,1,1,1,0,0,0,0,0,0,0,.184,.324,.508,.147
+May 31,vs CLE,L 9-8,Did not play
+Jun 1,vs CLE,W 7-4,4,0,1,1,0,0,0,0,0,0,0,.190,.342,.532,.158
+Jun 2,vs CLE,W 7-1,Did not play
+Jun 3,vs CLE,W 7-5,4,0,1,0,0,0,0,0,1,0,0,.196,.333,.529,.167
+Jun 5,vs CHW,W 4-2,2,0,0,0,0,0,0,0,0,0,0,.188,.318,.506,.159
+Jun 5,vs CHW,L 6-3,Did not play
+Jun 6,vs CHW,L 5-2,Did not play
+Jun 7,vs CHW,W 7-2,2,1,1,0,0,0,0,1,1,0,0,.216,.326,.542,.174
+Jun 8,vs LAA,L 4-2,Did not play
+Jun 9,vs LAA,L 2-1,2,0,0,0,0,0,0,0,0,0,0,.208,.313,.521,.167
+Jun 10,vs LAA,W 7-5,Did not play
+Jun 12,@ DET,W 6-4,1,0,0,0,0,0,0,0,0,0,0,.204,.306,.510,.163
+Jun 13,@ DET,L 5-2,2,0,0,0,0,0,0,1,1,0,0,.211,.294,.505,.157
+Jun 14,@ DET,L 3-1,Did not play
+Jun 15,@ CLE,W 6-3,Did not play
+Jun 16,@ CLE,W 9-3,3,0,0,0,0,0,0,0,1,0,0,.200,.278,.478,.148
+Jun 17,@ CLE,L 4-1,Did not play
+Jun 19,vs BOS,W 6-2,Did not play
+Jun 20,vs BOS,W 4-1,Did not play
+Jun 21,vs BOS,L 9-2,3,0,0,0,0,0,0,0,0,0,0,.190,.263,.453,.140
+Jun 22,vs TEX,L 8-1,1,0,0,0,0,0,0,1,1,0,0,.200,.259,.459,.138
+Jun 23,vs TEX,L 9-6,Did not play
+Jun 24,vs TEX,W 2-0,3,0,1,0,0,0,1,0,0,0,0,.206,.262,.468,.148
+Jun 26,@ CHW,L 8-4,Did not play
+Jun 27,@ CHW,L 6-1,3,0,0,0,0,0,0,0,0,0,0,.197,.250,.447,.141
+Jun 28,@ CHW,W 2-1,3,0,0,0,0,0,0,1,1,0,0,.200,.239,.439,.134
+Jun 29,@ CHC,L 10-6,Did not play
+Jun 30,@ CHC,L 14-9,1,2,0,0,0,0,0,2,0,0,0,.218,.235,.453,.132
+Jul 1,@ CHC,L 11-10,Did not play
+Jul 2,@ MIL,L 6-5,4,0,0,0,0,0,0,0,1,0,0,.207,.222,.429,.125
+Jul 3,@ MIL,L 2-0,3,0,0,0,0,0,0,0,0,0,0,.200,.213,.413,.120
+Jul 4,@ MIL,L 3-2,Did not play
+Jul 5,vs BAL,W 5-2,4,1,0,0,0,0,0,0,1,0,0,.191,.203,.394,.114
+Jul 6,vs BAL,W 6-2,Did not play
+Jul 7,vs BAL,W 5-4,3,0,2,1,0,0,3,0,0,0,0,.207,.232,.439,.134
+Jul 8,vs BAL,W 10-1,Did not play
+Jul 9,vs KC,W 3-1,3,0,1,1,0,0,0,0,2,0,0,.211,.247,.458,.141
+Jul 10,vs KC,L 9-4,Did not play
+Jul 11,vs KC,W 8-5,4,1,3,1,0,0,2,0,1,0,0,.232,.281,.513,.169
+Jul 12,vs TB,W 5-1,3,0,0,0,0,0,0,0,2,0,0,.225,.272,.497,.163
+Jul 13,vs TB,W 11-8,Did not play
+Jul 14,vs TB,L 19-6,4,1,2,0,0,0,0,0,1,0,0,.236,.281,.517,.177
+Jul 15,vs TB,W 11-7,Did not play
+Jul 20,@ KC,L 6-5,3,0,1,0,0,0,0,0,0,0,0,.239,.283,.522,.182
+Jul 21,@ KC,L 4-2,3,0,0,0,0,0,0,0,1,0,0,.232,.275,.507,.176
+Jul 22,@ KC,L 5-3,Did not play
+Jul 23,@ TOR,W 8-3,Did not play
+Jul 24,@ TOR,W 5-0,4,0,0,0,0,0,0,0,1,0,0,.224,.264,.488,.170
