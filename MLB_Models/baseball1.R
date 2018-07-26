@@ -357,6 +357,7 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
 
 ## ------------------------------------------------------------ ##
 
+
 df = create_lineups(num.lineups, num.overlap, nonstacked.lineup, salary.cap, hitters, pitchers)
 
 
