@@ -1,0 +1,104 @@
+DATE,OPP,RESULT,AB,R,H,2B,3B,HR,RBI,BB,SO,SB,CS,OBP,SLG,OPS,AVG
+Mar 29,@ TEX,W 4-1,4,1,1,0,0,0,0,0,1,0,0,.250,.250,.500,.250
+Mar 30,@ TEX,L 5-1,Did not play
+Mar 31,@ TEX,W 9-3,4,2,2,0,0,0,1,1,1,0,0,.444,.375,.819,.375
+Apr 1,@ TEX,W 8-2,Did not play
+Apr 2,vs BAL,W 6-1,2,2,2,0,0,0,0,1,0,0,0,.615,.500,1.115,.500
+Apr 3,vs BAL,W 10-6,2,0,0,0,0,0,0,0,1,0,0,.563,.417,.980,.417
+Apr 4,vs BAL,W 3-2,Did not play
+Apr 6,vs SD,L 4-1,3,0,0,0,0,0,0,0,1,0,0,.474,.333,.807,.333
+Apr 7,vs SD,W 1-0,4,0,2,0,0,0,0,0,1,0,0,.478,.368,.846,.368
+Apr 8,vs SD,W 4-1,Did not play
+Apr 9,@ MIN,W 2-0,3,0,1,0,0,0,0,1,1,0,0,.481,.364,.845,.364
+Apr 10,@ MIN,L 4-1,4,0,0,0,0,0,0,0,2,0,0,.419,.308,.727,.308
+Apr 11,@ MIN,L 9-8,Did not play
+Apr 13,vs TEX,W 3-2,3,0,2,0,0,0,0,0,1,0,0,.441,.345,.786,.345
+Apr 14,vs TEX,L 6-5,Did not play
+Apr 15,vs TEX,L 3-1,3,0,0,0,0,0,0,0,0,0,0,.405,.313,.718,.313
+Apr 16,@ SEA,L 2-1,Did not play
+Apr 17,@ SEA,W 4-1,1,1,1,0,0,1,2,2,0,0,0,.463,.424,.887,.333
+Apr 18,@ SEA,W 7-1,4,1,2,2,0,0,1,0,0,0,0,.467,.486,.953,.351
+Apr 19,@ SEA,W 9-2,Did not play
+Apr 20,@ CHW,W 10-0,2,2,1,0,0,0,1,2,0,0,0,.490,.487,.977,.359
+Apr 21,@ CHW,W 10-1,5,0,0,0,0,0,0,0,1,0,0,.444,.432,.876,.318
+Apr 22,@ CHW,W 7-1,Did not play
+Apr 23,vs LAA,L 2-0,2,0,0,0,0,0,0,0,1,0,0,.429,.413,.842,.304
+Apr 24,vs LAA,L 8-7,3,1,1,0,0,1,2,2,0,0,0,.443,.469,.912,.306
+Apr 25,vs LAA,W 5-2,Did not play
+Apr 27,vs OAK,L 8-1,4,0,0,0,0,0,0,0,2,0,0,.415,.434,.849,.283
+Apr 28,vs OAK,W 11-0,2,1,1,0,0,0,0,1,0,0,0,.426,.436,.862,.291
+Apr 29,vs OAK,W 8-4,1,1,0,0,0,0,1,0,0,0,0,.414,.429,.843,.286
+Apr 30,vs NYY,W 2-1,3,0,0,0,0,0,0,0,0,0,0,.397,.407,.804,.271
+May 1,vs NYY,L 4-0,3,0,0,0,0,0,0,0,1,0,0,.382,.387,.769,.258
+May 2,vs NYY,L 4-0,1,0,0,0,0,0,0,0,0,0,0,.377,.381,.758,.254
+May 3,vs NYY,L 6-5,4,0,2,0,0,0,1,0,1,0,0,.383,.388,.771,.269
+May 4,@ ARI,W 8-0,Did not play
+May 5,@ ARI,L 4-3,3,0,1,1,0,0,1,1,1,0,0,.388,.400,.788,.271
+May 6,@ ARI,L 3-1,3,0,0,0,0,0,0,1,0,0,0,.382,.384,.766,.260
+May 7,@ OAK,W 16-2,Did not play
+May 8,@ OAK,W 4-2,3,1,1,0,0,0,0,0,0,0,0,.387,.382,.769,.263
+May 9,@ OAK,W 4-1,Did not play
+May 11,vs TEX,L 1-0,4,0,0,0,0,0,0,0,2,0,0,.371,.363,.734,.250
+May 12,vs TEX,W 6-1,4,1,2,0,0,1,1,0,0,0,0,.376,.405,.781,.262
+May 13,vs TEX,W 6-1,Did not play
+May 14,@ LAA,L 2-1,Did not play
+May 15,@ LAA,W 5-3,4,0,2,0,0,0,1,0,0,0,0,.381,.409,.790,.273
+May 16,@ LAA,W 2-0,4,0,0,0,0,0,0,0,1,0,0,.367,.391,.758,.261
+May 18,vs CLE,W 4-1,2,0,0,0,0,0,0,0,0,0,0,.360,.383,.743,.255
+May 19,vs CLE,L 5-4,4,0,0,0,0,0,0,0,3,0,0,.348,.367,.715,.245
+May 20,vs CLE,W 3-1,3,1,1,0,0,1,2,0,1,0,0,.347,.396,.743,.248
+May 22,vs SF,W 11-2,Did not play
+May 23,vs SF,W 4-1,4,0,0,0,0,0,0,0,0,0,0,.336,.381,.717,.238
+May 24,@ CLE,W 8-2,2,0,0,0,0,0,0,0,0,0,0,.331,.374,.705,.234
+May 25,@ CLE,W 11-2,Did not play
+May 26,@ CLE,L 8-6,3,0,0,0,0,0,0,0,1,0,0,.323,.364,.687,.227
+May 27,@ CLE,L 10-9,Did not play
+May 28,@ NYY,W 5-1,4,0,0,0,0,0,0,0,1,0,0,.313,.351,.664,.219
+May 29,@ NYY,L 6-5,Did not play
+May 30,@ NYY,L 5-3,Did not play
+May 31,vs BOS,W 4-2,Did not play
+Jun 1,vs BOS,W 7-3,Did not play
+Jun 2,vs BOS,L 5-4,Did not play
+Jun 3,vs BOS,L 9-3,Did not play
+Jun 5,vs SEA,L 7-1,Did not play
+Jun 6,vs SEA,W 7-5,Did not play
+Jun 7,@ TEX,W 5-2,Did not play
+Jun 8,@ TEX,W 7-3,4,0,1,0,0,0,0,0,0,0,0,.311,.347,.658,.220
+Jun 9,@ TEX,W 4-3,Did not play
+Jun 10,@ TEX,W 8-7,Did not play
+Jun 12,@ OAK,W 6-3,3,0,0,0,0,0,0,1,0,0,0,.309,.339,.648,.215
+Jun 13,@ OAK,W 13-5,Did not play
+Jun 14,@ OAK,W 7-3,4,1,1,0,0,1,2,0,0,0,0,.308,.360,.668,.216
+Jun 15,@ KC,W 7-3,4,0,0,0,0,0,0,0,2,0,0,.299,.349,.648,.209
+Jun 16,@ KC,W 10-2,0,1,0,0,0,0,0,0,0,0,0,.299,.349,.648,.209
+Jun 17,@ KC,W 7-4,4,0,2,0,0,0,1,0,1,0,0,.305,.353,.658,.218
+Jun 18,vs TB,W 5-4,2,0,0,0,0,0,0,0,1,0,0,.301,.348,.649,.215
+Jun 19,vs TB,L 2-1,Did not play
+Jun 20,vs TB,W 5-1,3,0,1,0,0,0,0,0,1,0,0,.301,.348,.649,.217
+Jun 22,vs KC,L 1-0,1,0,0,0,0,0,0,0,0,0,0,.299,.345,.644,.216
+Jun 23,vs KC,W 4-3,5,0,1,0,0,0,0,0,0,0,0,.296,.340,.636,.215
+Jun 24,vs KC,W 11-3,Did not play
+Jun 25,vs TOR,L 6-3,Did not play
+Jun 26,vs TOR,W 7-0,4,0,0,0,0,0,0,0,2,0,0,.289,.331,.620,.209
+Jun 27,vs TOR,W 7-6,Did not play
+Jun 28,@ TB,W 1-0,4,0,1,0,0,0,0,0,1,0,0,.288,.329,.617,.211
+Jun 29,@ TB,L 3-2,Did not play
+Jun 30,@ TB,L 5-2,3,0,0,0,0,0,0,0,1,0,0,.283,.323,.606,.206
+Jul 1,@ TB,L 3-2,Did not play
+Jul 3,@ TEX,W 5-3,Did not play
+Jul 4,@ TEX,W 5-4,Did not play
+Jul 5,vs CHW,W 4-3,Did not play
+Jul 6,vs CHW,W 11-4,Did not play
+Jul 7,vs CHW,W 12-6,Did not play
+Jul 8,vs CHW,W 2-1,Did not play
+Jul 9,vs OAK,L 2-0,Did not play
+Jul 10,vs OAK,W 6-5,Did not play
+Jul 11,vs OAK,L 8-3,Did not play
+Jul 12,vs OAK,L 6-4,Did not play
+Jul 13,vs DET,W 3-0,Did not play
+Jul 14,vs DET,W 9-1,Did not play
+Jul 15,vs DET,L 6-3,Did not play
+Jul 20,@ LAA,W 3-1,Did not play
+Jul 21,@ LAA,W 7-0,Did not play
+Jul 22,@ LAA,L 14-5,Did not play
+Jul 24,@ COL,W 8-2,Did not play
