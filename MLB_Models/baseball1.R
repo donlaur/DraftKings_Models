@@ -22,7 +22,7 @@ library(purrr)
 # Number of lineups we wish to generate
 # Note: Each additional lineup will take longer to
 #       generate than the last 
-num.lineups = 5
+num.lineups = 20
 
 # Maximum overlap of players among lineups
 num.overlap = 5
@@ -41,6 +41,9 @@ path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup.csv"
 
 # Path to read Draftkings player CSV file from
 path.players = "C:/Users/Ming/Documents/Fantasy_Models/data/MLB_07212018.csv"
+
+# Path to read comprehensive MLB player data from
+path.MLB = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
 
 ## Read Draftkings CSV file and modify columns to create a clean dataframe
 
@@ -90,6 +93,19 @@ players = read.file(path.players)
 hitters = players[players$Position != "P",]
 pitchers = players[players$Position == "P",]
 
+
+## Path to folder containing game-by-game data on all MLB players
+
+## ------------------------------------------------------------ ##
+
+
+setwd(path.MLB)
+file.list = list()
+for(file in list.files()) {
+  read.file = read.csv(file, stringsAsFactors = F) %>% complete.cases()
+  # FOR DYLAN <3 #
+}
+
 nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              num.hitters, num.pitchers, first.basemen,
                              second.basemen, third.basemen,
@@ -97,7 +113,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              catchers, num.teams, hitters.teams,
                              num.games, hitters.games, pitchers.games,
                              salary.cap, players.variance, players.covariance,
-                             hitters.covariance) {
+                             hitters.covariance, pitchers.opponents) {
   w = function(i, j) {
     vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
   }
@@ -165,6 +181,12 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                          sum_expr(colwise(pitchers.games[t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
   }
   m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
+
+  # Pitcher constraint: no pitcher and hitter can come from the same team
+  for(i in 1:num.pitchers) {
+    m = add_constraint(m, sum_expr(5 * pitchers.lineup[i]) +
+                         sum_expr(colwise(pitchers.opponents[i, j]) * hitters.lineup[j], j = 1:num.hitters) <= 5)
+  }
   
   # Overlap constraint
   for(i in 1:nrow(lineups)) {
@@ -177,7 +199,6 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                       sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
                     sense = "max")
   result = solve_model(m, with_ROI(solver = "symphony"))
-  print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
@@ -299,6 +320,23 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                               nrow = (num.hitters + num.pitchers))
   
   hitters.covariance = matrix(runif(num.hitters^2), nrow = num.hitters)
+  
+  # Pitchers' opponents
+  opponents = pitchers[,"Opponent"]
+  
+  opponents.list = list()
+  for(i in 1:length(opponents)) {
+    for(j in 1:num.teams) {
+      if(opponents[i] == teams[j]) {
+        opponents.list = list.append(opponents.list, hitters.teams[,j])
+      }
+    }
+  }
+  
+  pitchers.opponents = Reduce(function(x, y) {
+    rbind(x, y)
+  }, opponents.list)
+  
   # Create a lineup
   tracer = matrix(rep(0, num.hitters + num.pitchers), nrow = 1)
   lineups = formulation(hitters, pitchers, tracer, num.overlap,
@@ -308,7 +346,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
                         salary.cap, players.variance, players.covariance,
-                        hitters.covariance)
+                        hitters.covariance, pitchers.opponents)
   lineups = matrix(lineups, nrow = 1)
   
   for(i in 1:(num.lineups - 1)) {
@@ -319,7 +357,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                          hitters.list[[6]], num.teams, hitters.teams,
                          num.games, hitters.games, pitchers.games,
                          salary.cap, players.variance, players.covariance,
-                         hitters.covariance)
+                         hitters.covariance, pitchers.opponents)
     lineups = rbind(lineups, lineup)
   }
   
@@ -365,5 +403,4 @@ df = create_lineups(num.lineups, num.overlap, nonstacked.lineup, salary.cap, hit
 
 ## ------------------------------------------------------------ ##
 
-
-# lineups.to.csv(df, hitters, pitchers, path.output)
+lineups.to.csv(df, hitters, pitchers, path.output)

@@ -107,7 +107,7 @@ stacked.lineup = function(skaters, goalies, lineups,
   # Goalie stacking: skaters cannot be on a team that opposes the goalie's team
   for(i in 1:num.goalies) {
     m = add_constraint(m, sum_expr(6 * goalies.lineup[i]) +
-                         sum_expr(colwise(goalies.opponents[i, j]) * skaters.lineup[j], j = num.skaters) <= 6)
+                         sum_expr(colwise(goalies.opponents[i, j]) * skaters.lineup[j], j = 1:num.skaters) <= 6)
   }
   
   # Line stacking: at least one complete line in the lineup

@@ -2,8 +2,8 @@
 ## each player's data as a CSV file.
 ##
 ## To run this file, pip install the packages below and install the chromedriver
-## application onto your computer and create a PATH variable to the chromedriver
-## folder.
+## application onto your computer. Then, create a PATH variable to the chromedriver
+## folder (this can be done in your computer's settings).
 ##
 ## Ming Ying, 2018.
 
@@ -37,13 +37,13 @@ def select(url, out):
 	# Wait for menu to be clickable
 	teams_menu = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "main-items")))
 
-	wait = WebDriverWait(teams_menu, 100)
-
 	# Get IDs of all teams
+	wait = WebDriverWait(teams_menu, 100)
 	wait.until(EC.element_to_be_clickable((By.XPATH, "./li/a[@href = '#']")))
 	teams_list = teams_menu.find_elements_by_xpath("./li/a[@href = '#']")
 	team_ids = map(lambda x: x.get_attribute("id"), teams_list)
 
+	# For each team, open the player menu and scrape each player's data
 	for i in range(0, len(team_ids)):
 		wait = WebDriverWait(driver, 100)
 
@@ -52,7 +52,6 @@ def select(url, out):
 			wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "split-select"))).click()
 	
 		# Hover over the chosen team
-		wait = WebDriverWait(driver, 100)
 		wait.until(EC.element_to_be_clickable((By.ID, team_ids[i]))).click()
 
 		# Open players menu
