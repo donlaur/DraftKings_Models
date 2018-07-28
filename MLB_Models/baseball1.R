@@ -40,19 +40,24 @@ salary.cap = 50000
 path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup.csv"
 
 # Path to read Draftkings player CSV file from
-path.players = "C:/Users/Ming/Documents/Fantasy_Models/data/MLB_07212018.csv"
+path.draftkings = "C:/Users/Ming/Documents/Fantasy_Models/data/DRAFT_07282018.csv"
 
-# Path to read comprehensive MLB player data from
-path.MLB = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
+# Path to read Rotogrinders player CSV files from
+path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_PITCHERS_07282018.csv"
+path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_HITTERS_07282018.csv"
+
+# Path to read comprehensive ESPN MLB player data from
+path.ESPN = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
+
 
 ## Read Draftkings CSV file and modify columns to create a clean dataframe
 
 ## ------------------------------------------------------------ ##
 
 
-read.file = function(path.players) {
+read.draftkings = function(path.draftkings) {
   # Read raw CSV file
-  players = read.csv(path.players, stringsAsFactors = F)
+  players = read.csv(path.draftkings, stringsAsFactors = F)
   
   # Change column names
   names(players) = c("Roster.Position", "NameID", "Name", 
@@ -81,17 +86,44 @@ read.file = function(path.players) {
                        teams.playing[[i]][teams.playing[[i]] != own.team[i]])
   }
   players$Opponent = opponents
-  return(players)
+  hitters = players[players$Position != "P",]
+  pitchers = players[players$Position == "P",]
+  
+  return(list(hitters = hitters,
+              pitchers = pitchers))
 }
 
-# Cleaned CSV file
-players = read.file(path.players)
+## Read Rotogrinders CSV file and modify columns to create a clean dataframe
 
-# Split players CSV file into two files:
-# one for hitters and one for pitchers
+## ------------------------------------------------------------ ##
 
-hitters = players[players$Position != "P",]
-pitchers = players[players$Position == "P",]
+read.rotogrinders = function(path.roto.hitters, path.roto.pitchers) {
+  hitters = read.csv(path.roto.hitters,
+                     stringsAsFactors = F,
+                     header = F)
+  
+  pitchers = read.csv(path.roto.pitchers,
+                      stringsAsFactors = F,
+                      header = F)
+  
+  players = list(hitters = hitters,
+                 pitchers = pitchers)
+  
+  for(i in 1:length(players)) {
+    colnames(players[[i]]) = c("Name", 
+                               "Salary",
+                               "Team",
+                               "Position",
+                               "Opponent",
+                               "None",
+                               "Percentage",
+                               "Projection")
+    players[[i]] = select(players[[i]],
+                          subset = -c(None, Percentage))
+  }
+  
+  return(players)
+}
 
 
 ## Create a two lists: one for hitters' dataframes, and
@@ -118,7 +150,7 @@ nohitter = function(hits){
   return(ifelse(hits == 0, 1, 0))
 }
 
-setwd(path.MLB)
+setwd(path.ESPN)
 pitcher.list = list()
 hitter.list = list()
 
@@ -154,6 +186,12 @@ for(file in list.files()) {
     hitter.list = list.append(hitter.list, df)
   }
 }
+
+
+## Create one lineup using integer linear programming
+
+## ------------------------------------------------------------ ##
+
 
 nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              num.hitters, num.pitchers, first.basemen,
