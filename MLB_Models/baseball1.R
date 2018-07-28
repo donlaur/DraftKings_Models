@@ -94,16 +94,65 @@ hitters = players[players$Position != "P",]
 pitchers = players[players$Position == "P",]
 
 
-## Path to folder containing game-by-game data on all MLB players
+## Create a two lists: one for hitters' dataframes, and
+## one for pitchers' dataframes, where each dataframe 
+## contains a Draftkings Fantasy Points column calculated 
+## from their game-by-game ESPN stats
 
 ## ------------------------------------------------------------ ##
 
 
+convert_result = function(result){
+  return(ifelse(grepl("W", result), 1, 0))
+}
+
+shutout = function(runs){
+  return(ifelse(runs == 0, 1, 0))
+}
+
+complete_game = function(innings){
+  return(ifelse(innings == 9, 1, 0))
+}
+
+nohitter = function(hits){
+  return(ifelse(hits == 0, 1, 0))
+}
+
 setwd(path.MLB)
-file.list = list()
+pitcher.list = list()
+hitter.list = list()
+
 for(file in list.files()) {
-  read.file = read.csv(file, stringsAsFactors = F) %>% complete.cases()
-  # FOR DYLAN <3 #
+  # Read the csv file
+  df = read.csv(file, stringsAsFactors = F,
+                check.names = F)
+  
+  # Get rid of games where the player didn't play
+  df = df[complete.cases(df), ]
+  
+  # Determine whether the player is a pitcher or hitter
+  if ("IP" %in% colnames(df)) {
+    # Make result (win/loss) column into factor
+    df$RESULT = sapply(df$RESULT, convert_result)
+    df$Dec. = sapply(df$Dec., convert_result)
+    df$Shutout = sapply(df$R, shutout)
+    df$Complete.Game = sapply(df$IP, complete_game)
+    df$No.Hitter = sapply(df$H, nohitter)
+    
+    df$Points = 2.25 * df$IP + 2 * df$SO + 
+      4 * df$Dec. - 2 * df$ER - 0.6 * (df$H + df$BB) + 
+      2.5 * df$Complete.Game + 
+      2.5 * df$Complete.Game * df$Shutout + 
+      5 * df$Complete.Game * df$No.Hitter
+    pitcher.list = list.append(pitcher.list, df)
+  }
+  else {
+    df$Points = 3 * df[,"H"] + 5 * df[,"2B"] +
+      8 * df[,"3B"] + 10 * df[,"HR"] +
+      2 * df[,"RBI"] + 2 * df[,"R"] +
+      2 * df[,"BB"] + 5 * df[,"SB"]
+    hitter.list = list.append(hitter.list, df)
+  }
 }
 
 nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
