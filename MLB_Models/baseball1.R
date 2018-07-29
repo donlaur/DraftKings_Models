@@ -236,17 +236,53 @@ fetch.files = function(espn.list,
   return(NA)
 }
 
-get.var = function(espn.list, roto.file) {
-  roto.file$Variance = NA
+get.sd = function(espn.list, roto.file) {
+  roto.file$Sigma = NA
   
   for(i in 1:nrow(roto.file)) {
     tryCatch ({
       df = fetch.files(espn.list, roto.file[i,])
-      roto.file[i,]$Variance = var(df$Points)
+      roto.file[i,]$Sigma = sd(df$Points)
     }, error = function(e) {})
   }
   
   return(roto.file)
+}
+
+hitters = get.sd(hitter.list, hitters)
+pitchers = get.sd(pitcher.list, pitchers)
+
+
+## Create covariance matrix for hitters
+
+## ------------------------------------------------------------ ##
+
+get.cov = function(espn.list, roto.file) {
+  width = nrow(roto.file)
+  covariances = matrix(rep(0, width^2), nrow = width)
+  
+  for(i in 1:width) {
+    for(j in 1:width) {
+      if(i == j | roto.file[i,]$Team != roto.file[j,]$Team) {
+        covariances[i, j] = 0
+      }
+      else {
+        player.1 = fetch.files(espn.list, roto.file[i,])
+        player.2 = fetch.files(espn.list, roto.file[j,])
+        tryCatch ({
+          player.1 = player.1[,c("DATE","Points")]
+          player.2 = player.2[,c("DATE","Points")]
+          merged.players = merge(player.1,
+                                 player.2,
+                                 by = "DATE")
+          covariances[i, j] = cor(merged.players$Points.x,
+                                  merged.players$Points.y)
+        }, error = function(e) {})
+      }
+    }
+  }
+  
+  return(covariances)
 }
 
 
