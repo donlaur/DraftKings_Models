@@ -204,47 +204,51 @@ for(file in list.files()) {
 ## ------------------------------------------------------------ ##
 
 
-merge.files = function(espn.list,
-                       roto.file) {
-  roto.file$Variance = NA
-  
-  for(i in 1:nrow(roto.file)) {
-    name = unlist(strsplit(roto.file[i,]$Name, split = " "))
-    index = 0
+fetch.files = function(espn.list,
+                       player.profile) {
+  name = unlist(strsplit(player.profile$Name, split = " "))
+  index = 0
+  for(df in names(espn.list)) {
+    if(all(sapply(name, function(x) {
+      grepl(x, df, ignore.case = T) 
+    }))) {
+      index = which(names(espn.list) == df)
+    }
+  }
+  if(index == 0) {
+    name = paste(name, collapse = " ")
     for(df in names(espn.list)) {
-      if(all(sapply(name, function(x) {
-        grepl(x, df, ignore.case = T) 
+      csv.file = gsub(".csv", "", df)
+      csv.file = gsub("\\.-", "\\.", csv.file)
+      csv.file = gsub("-", "\\.", csv.file)
+      csv.file = unlist(strsplit(csv.file, split = "\\."))
+      if(all(sapply(csv.file, function(x) {
+        grepl(x, name, ignore.case = T) 
       }))) {
         index = which(names(espn.list) == df)
       }
     }
-    if(index == 0) {
-      name = paste(name, collapse = " ")
-      for(df in names(espn.list)) {
-        csv.file = gsub(".csv", "", df)
-        csv.file = gsub("\\.-", "\\.", csv.file)
-        csv.file = gsub("-", "\\.", csv.file)
-        csv.file = unlist(strsplit(csv.file, split = "\\."))
-        if(all(sapply(csv.file, function(x) {
-          grepl(x, name, ignore.case = T) 
-        }))) {
-          index = which(names(espn.list) == df)
-        }
-      }
-    }
+  }
+  tryCatch ({
+    player.df = espn.list[[index]]
+    return(player.df)
+  }, error = function(e) {})
+  return(NA)
+}
+
+get.var = function(espn.list, roto.file) {
+  roto.file$Variance = NA
+  
+  for(i in 1:nrow(roto.file)) {
     tryCatch ({
-      player.df = espn.list[[index]]
-      roto.file[i,]$Variance = var(player.df$Points)
+      df = fetch.files(espn.list, roto.file[i,])
+      roto.file[i,]$Variance = var(df$Points)
     }, error = function(e) {})
   }
+  
   return(roto.file)
 }
 
-hitters = merge.files(hitter.list,
-                     hitters)
-
-pitchers = merge.files(pitcher.list,
-                      pitchers)
 
 ## Create one lineup using integer linear programming
 
