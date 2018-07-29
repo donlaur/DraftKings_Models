@@ -52,6 +52,9 @@ path.ESPN = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
 
 
 ## Read Draftkings CSV file and modify columns to create a clean dataframe
+## This function is not currently used in the code, as the Rotogrinder's
+## CSV file provides the same information as the Draftkings CSV file,
+## with the inclusion of player score projections.
 
 ## ------------------------------------------------------------ ##
 
@@ -98,6 +101,7 @@ read.draftkings = function(path.draftkings) {
 
 ## ------------------------------------------------------------ ##
 
+
 read.rotogrinders = function(path.roto.hitters, path.roto.pitchers) {
   hitters = read.csv(path.roto.hitters,
                      stringsAsFactors = F,
@@ -121,8 +125,11 @@ read.rotogrinders = function(path.roto.hitters, path.roto.pitchers) {
                                "Projection")
     players[[i]] = select(players[[i]],
                           subset = -c(None, Percentage))
+    players[[i]]$Teams.Playing = apply(players[[i]][,c("Team", "Opponent")], 
+                                       1, 
+                                       paste, 
+                                       collapse = "@")
   }
-  
   return(players)
 }
 
@@ -257,7 +264,9 @@ pitchers = get.sd(pitcher.list, pitchers)
 
 ## ------------------------------------------------------------ ##
 
-get.cov = function(espn.list, roto.file) {
+
+get.cov = function(espn.list, 
+                   roto.file) {
   width = nrow(roto.file)
   covariances = matrix(rep(0, width^2), nrow = width)
   
@@ -297,8 +306,8 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              shortstops, outfielders,
                              catchers, num.teams, hitters.teams,
                              num.games, hitters.games, pitchers.games,
-                             salary.cap, players.variance, players.covariance,
-                             hitters.covariance, pitchers.opponents) {
+                             salary.cap, players.variance, hitters.covariance, 
+                             pitchers.opponents) {
   w = function(i, j) {
     vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
   }
@@ -326,9 +335,9 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
     
     # Variance lower bound
-    add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
-                     sum_expr(colwise(players.variance[i]) * hitters.lineup[i], i = 1:num.hitters) +
-                     sum_expr(colwise(players.variance[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
+    # add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
+    #                  sum_expr(colwise(players.variance[i]) * hitters.lineup[i], i = 1:num.hitters) +
+    #                  sum_expr(colwise(players.variance[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
                      
     # One of each position besides outfielders
     add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
@@ -384,6 +393,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                       sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
                     sense = "max")
   result = solve_model(m, with_ROI(solver = "symphony"))
+  print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
@@ -498,13 +508,10 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   print("Generating lineups (this may take a while)...")
   
   # Mock variance vector
-  players.variance = runif(num.hitters + num.pitchers)
+  players.variance = append(hitters$Sigma, pitchers$Sigma)
   
-  # Mock covariance matrix
-  players.covariance = matrix(runif((num.hitters + num.pitchers)^2), 
-                              nrow = (num.hitters + num.pitchers))
-  
-  hitters.covariance = matrix(runif(num.hitters^2), nrow = num.hitters)
+  # Covariance matrix
+  hitters.covariance = get.cov(hitter.list, hitters)
   
   # Pitchers' opponents
   opponents = pitchers[,"Opponent"]
@@ -530,8 +537,8 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
-                        salary.cap, players.variance, players.covariance,
-                        hitters.covariance, pitchers.opponents)
+                        salary.cap, players.variance, hitters.covariance, 
+                        pitchers.opponents)
   lineups = matrix(lineups, nrow = 1)
   
   for(i in 1:(num.lineups - 1)) {
@@ -541,8 +548,8 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                          hitters.list[[4]], hitters.list[[5]],
                          hitters.list[[6]], num.teams, hitters.teams,
                          num.games, hitters.games, pitchers.games,
-                         salary.cap, players.variance, players.covariance,
-                         hitters.covariance, pitchers.opponents)
+                         salary.cap, players.variance, hitters.covariance, 
+                         pitchers.opponents)
     lineups = rbind(lineups, lineup)
   }
   
