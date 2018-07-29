@@ -12,6 +12,7 @@ library(ROI.plugin.symphony)
 library(ROI.plugin.glpk)
 library(dplyr)
 library(purrr)
+library(DescTools)
 
 
 ## Macro hockey variables: change these
@@ -125,9 +126,15 @@ read.rotogrinders = function(path.roto.hitters, path.roto.pitchers) {
   return(players)
 }
 
+players = read.rotogrinders(path.roto.hitters, 
+                            path.roto.pitchers)
 
-## Create a two lists: one for hitters' dataframes, and
-## one for pitchers' dataframes, where each dataframe 
+hitters = players[["hitters"]]
+pitchers = players[["pitchers"]]
+
+
+## Read ESPN CSV file and create two lists: one for hitters' dataframes, 
+## and one for pitchers' dataframes, where each dataframe 
 ## contains a Draftkings Fantasy Points column calculated 
 ## from their game-by-game ESPN stats
 
@@ -171,22 +178,73 @@ for(file in list.files()) {
     df$Complete.Game = sapply(df$IP, complete_game)
     df$No.Hitter = sapply(df$H, nohitter)
     
-    df$Points = 2.25 * df$IP + 2 * df$SO + 
-      4 * df$Dec. - 2 * df$ER - 0.6 * (df$H + df$BB) + 
-      2.5 * df$Complete.Game + 
-      2.5 * df$Complete.Game * df$Shutout + 
-      5 * df$Complete.Game * df$No.Hitter
-    pitcher.list = list.append(pitcher.list, df)
+    df$Points = 2.25 * df[,"IP"] + 2 * df[,"SO"] + 
+      4 * df[,"Dec."] - 2 * df[,"ER"] - 
+      0.6 * (df[,"H"] + df[,"BB"]) + 2.5 * df[,"Complete.Game"] + 
+      2.5 * df[,"Complete.Game"] * df[,"Shutout"] + 
+      5 * df[,"Complete.Game"] * df[,"No.Hitter"]
+    
+    pitcher.list = list.append(pitcher.list, file = df)
+    names(pitcher.list)[which(names(pitcher.list) == "file")] = file
   }
   else {
     df$Points = 3 * df[,"H"] + 5 * df[,"2B"] +
       8 * df[,"3B"] + 10 * df[,"HR"] +
       2 * df[,"RBI"] + 2 * df[,"R"] +
       2 * df[,"BB"] + 5 * df[,"SB"]
-    hitter.list = list.append(hitter.list, df)
+    hitter.list = list.append(hitter.list, file = df)
+    names(hitter.list)[which(names(hitter.list) == "file")] = file
   }
 }
 
+
+## Merge ESPN and Rotogrinders CSV files, including a column for
+## player variance
+
+## ------------------------------------------------------------ ##
+
+
+merge.files = function(espn.list,
+                       roto.file) {
+  roto.file$Variance = NA
+  
+  for(i in 1:nrow(roto.file)) {
+    name = unlist(strsplit(roto.file[i,]$Name, split = " "))
+    index = 0
+    for(df in names(espn.list)) {
+      if(all(sapply(name, function(x) {
+        grepl(x, df, ignore.case = T) 
+      }))) {
+        index = which(names(espn.list) == df)
+      }
+    }
+    if(index == 0) {
+      name = paste(name, collapse = " ")
+      for(df in names(espn.list)) {
+        csv.file = gsub(".csv", "", df)
+        csv.file = gsub("\\.-", "\\.", csv.file)
+        csv.file = gsub("-", "\\.", csv.file)
+        csv.file = unlist(strsplit(csv.file, split = "\\."))
+        if(all(sapply(csv.file, function(x) {
+          grepl(x, name, ignore.case = T) 
+        }))) {
+          index = which(names(espn.list) == df)
+        }
+      }
+    }
+    tryCatch ({
+      player.df = espn.list[[index]]
+      roto.file[i,]$Variance = var(player.df$Points)
+    }, error = function(e) {})
+  }
+  return(roto.file)
+}
+
+hitters = merge.files(hitter.list,
+                     hitters)
+
+pitchers = merge.files(pitcher.list,
+                      pitchers)
 
 ## Create one lineup using integer linear programming
 
@@ -489,5 +547,6 @@ df = create_lineups(num.lineups, num.overlap, nonstacked.lineup, salary.cap, hit
 ## Write to CSV ##
 
 ## ------------------------------------------------------------ ##
+
 
 lineups.to.csv(df, hitters, pitchers, path.output)
