@@ -284,7 +284,7 @@ get.cov = function(espn.list,
           merged.players = merge(player.1,
                                  player.2,
                                  by = "DATE")
-          covariances[i, j] = cor(merged.players$Points.x,
+          covariances[i, j] = cov(merged.players$Points.x,
                                   merged.players$Points.y)
         }, error = function(e) {})
       }
@@ -306,7 +306,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                              shortstops, outfielders,
                              catchers, num.teams, hitters.teams,
                              num.games, hitters.games, pitchers.games,
-                             salary.cap, players.variance, hitters.covariance, 
+                             salary.cap, players.sd, hitters.covariance, 
                              pitchers.opponents) {
   w = function(i, j) {
     vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
@@ -336,8 +336,8 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     
     # Variance lower bound
     # add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
-    #                  sum_expr(colwise(players.variance[i]) * hitters.lineup[i], i = 1:num.hitters) +
-    #                  sum_expr(colwise(players.variance[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
+    #                  sum_expr(colwise(players.sd[i]) * hitters.lineup[i], i = 1:num.hitters) +
+    #                  sum_expr(colwise(players.sd[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
                      
     # One of each position besides outfielders
     add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
@@ -390,7 +390,8 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
   
   m = set_objective(m,
                     sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
-                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
+                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers) +
+                      sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters, i != j),
                     sense = "max")
   result = solve_model(m, with_ROI(solver = "symphony"))
   print(result)
@@ -508,7 +509,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   print("Generating lineups (this may take a while)...")
   
   # Mock variance vector
-  players.variance = append(hitters$Sigma, pitchers$Sigma)
+  players.sd = append(hitters$Sigma, pitchers$Sigma)
   
   # Covariance matrix
   hitters.covariance = get.cov(hitter.list, hitters)
@@ -537,7 +538,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
-                        salary.cap, players.variance, hitters.covariance, 
+                        salary.cap, players.sd, hitters.covariance, 
                         pitchers.opponents)
   lineups = matrix(lineups, nrow = 1)
   
@@ -548,7 +549,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                          hitters.list[[4]], hitters.list[[5]],
                          hitters.list[[6]], num.teams, hitters.teams,
                          num.games, hitters.games, pitchers.games,
-                         salary.cap, players.variance, hitters.covariance, 
+                         salary.cap, players.sd, hitters.covariance, 
                          pitchers.opponents)
     lineups = rbind(lineups, lineup)
   }
