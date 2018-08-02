@@ -302,14 +302,14 @@ get.cov = function(espn.list,
 ## ------------------------------------------------------------ ##
 
 
-nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
-                             num.hitters, num.pitchers, first.basemen,
-                             second.basemen, third.basemen,
-                             shortstops, outfielders,
-                             catchers, num.teams, hitters.teams,
-                             num.games, hitters.games, pitchers.games,
-                             salary.cap, players.sd, hitters.covariance, 
-                             pitchers.opponents) {
+stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
+                          num.hitters, num.pitchers, first.basemen,
+                          second.basemen, third.basemen,
+                          shortstops, outfielders,
+                          catchers, num.teams, hitters.teams,
+                          num.games, hitters.games, pitchers.games,
+                          salary.cap, players.sd, hitters.covariance, 
+                          pitchers.opponents) {
   w = function(i, j) {
     vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
   }
@@ -561,9 +561,13 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   return(lineups)
 }
 
+## Takes the lineups matrix and writes it to a CSV file, where each
+## row is a lineup
+
+## ------------------------------------------------------------ ##
+
+
 lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
-  
-  # Writing to CSV file
   for(i in 1:nrow(lineups)) {
     lineup = lineups[i,]
     chosen.hitters = lineup[1:nrow(hitters)]
@@ -585,17 +589,10 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
 }
 
 
-## Create lineups ##
+## Create lineups and export to CSV
 
 ## ------------------------------------------------------------ ##
 
 
-df = create_lineups(num.lineups, num.overlap, nonstacked.lineup, salary.cap, hitters, pitchers)
-
-
-## Write to CSV ##
-
-## ------------------------------------------------------------ ##
-
-
+df = create_lineups(num.lineups, num.overlap, stacked.lineup, salary.cap, hitters, pitchers)
 lineups.to.csv(df, hitters, pitchers, path.output)
