@@ -569,8 +569,8 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
     hitters.indices = which(chosen.hitters == 1)
     pitchers.indices = which(chosen.pitchers == 1)
     
-    names = append(c(hitters[hitters.indices, "NameID"]),
-                   c(pitchers[pitchers.indices, "NameID"]))
+    names = append(c(hitters[hitters.indices, "Name"]),
+                   c(pitchers[pitchers.indices, "Name"]))
     write.table(matrix(names, nrow = 1),
                 path.output,
                 sep = ",",
@@ -578,7 +578,6 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
                 col.names = F,
                 row.names = F)
   }
-  
   print(paste("CSV successfully exported to ", path.output, sep = " "))
 }
 
