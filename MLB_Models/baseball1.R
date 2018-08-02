@@ -176,32 +176,34 @@ for(file in list.files()) {
   # Get rid of games where the player didn't play
   df = df[complete.cases(df), ]
   
-  # Determine whether the player is a pitcher or hitter
-  if ("IP" %in% colnames(df)) {
-    # Make result (win/loss) column into factor
-    df$RESULT = sapply(df$RESULT, convert_result)
-    df$Dec. = sapply(df$Dec., convert_result)
-    df$Shutout = sapply(df$R, shutout)
-    df$Complete.Game = sapply(df$IP, complete_game)
-    df$No.Hitter = sapply(df$H, nohitter)
-    
-    df$Points = 2.25 * df[,"IP"] + 2 * df[,"SO"] + 
-      4 * df[,"Dec."] - 2 * df[,"ER"] - 
-      0.6 * (df[,"H"] + df[,"BB"]) + 2.5 * df[,"Complete.Game"] + 
-      2.5 * df[,"Complete.Game"] * df[,"Shutout"] + 
-      5 * df[,"Complete.Game"] * df[,"No.Hitter"]
-    
-    pitcher.list = list.append(pitcher.list, file = df)
-    names(pitcher.list)[which(names(pitcher.list) == "file")] = file
-  }
-  else {
-    df$Points = 3 * df[,"H"] + 5 * df[,"2B"] +
-      8 * df[,"3B"] + 10 * df[,"HR"] +
-      2 * df[,"RBI"] + 2 * df[,"R"] +
-      2 * df[,"BB"] + 5 * df[,"SB"]
-    hitter.list = list.append(hitter.list, file = df)
-    names(hitter.list)[which(names(hitter.list) == "file")] = file
-  }
+  tryCatch ({
+    # Determine whether the player is a pitcher or hitter
+    if ("IP" %in% colnames(df)) {
+      # Make result (win/loss) column into factor
+      df$RESULT = sapply(df$RESULT, convert_result)
+      df$Dec. = sapply(df$Dec., convert_result)
+      df$Shutout = sapply(df$R, shutout)
+      df$Complete.Game = sapply(df$IP, complete_game)
+      df$No.Hitter = sapply(df$H, nohitter)
+      
+      df$Points = 2.25 * df[,"IP"] + 2 * df[,"SO"] + 
+        4 * df[,"Dec."] - 2 * df[,"ER"] - 
+        0.6 * (df[,"H"] + df[,"BB"]) + 2.5 * df[,"Complete.Game"] + 
+        2.5 * df[,"Complete.Game"] * df[,"Shutout"] + 
+        5 * df[,"Complete.Game"] * df[,"No.Hitter"]
+      
+      pitcher.list = list.append(pitcher.list, file = df)
+      names(pitcher.list)[which(names(pitcher.list) == "file")] = file
+    }
+    else {
+      df$Points = 3 * df[,"H"] + 5 * df[,"2B"] +
+        8 * df[,"3B"] + 10 * df[,"HR"] +
+        2 * df[,"RBI"] + 2 * df[,"R"] +
+        2 * df[,"BB"] + 5 * df[,"SB"]
+      hitter.list = list.append(hitter.list, file = df)
+      names(hitter.list)[which(names(hitter.list) == "file")] = file
+    }
+  }, error = function(e) {})
 }
 
 
@@ -338,7 +340,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     # add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
     #                  sum_expr(colwise(players.sd[i]) * hitters.lineup[i], i = 1:num.hitters) +
     #                  sum_expr(colwise(players.sd[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
-                     
+    
     # One of each position besides outfielders
     add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
     add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
@@ -364,7 +366,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
     m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
   }
-  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
+  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) == 2)
   
   # Players must come from at least two different games
   m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
@@ -375,7 +377,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                          sum_expr(colwise(pitchers.games[t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
   }
   m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
-
+  
   # Pitcher constraint: no pitcher and hitter can come from the same team
   for(i in 1:num.pitchers) {
     m = add_constraint(m, sum_expr(5 * pitchers.lineup[i]) +
@@ -390,10 +392,10 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
   
   m = set_objective(m,
                     sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
-                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers) +
-                      sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters, i != j),
+                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
                     sense = "max")
-  result = solve_model(m, with_ROI(solver = "symphony"))
+  
+  result = solve_model(m, with_ROI(solver = "glpk"))
   print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
@@ -505,7 +507,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
     rbind(x, y)
   }, games.distribution)
   
-  print("Initializing ROI.plugin.symphony...")
+  print("Initializing ROI.plugin.glpk...")
   print("Generating lineups (this may take a while)...")
   
   # Mock variance vector
