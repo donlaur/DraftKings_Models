@@ -23,7 +23,7 @@ library(DescTools)
 # Number of lineups we wish to generate
 # Note: Each additional lineup will take longer to
 #       generate than the last 
-num.lineups = 20
+num.lineups = 5
 
 # Maximum overlap of players among lineups
 num.overlap = 5
@@ -44,8 +44,8 @@ path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup.csv"
 path.draftkings = "C:/Users/Ming/Documents/Fantasy_Models/data/DRAFT_07282018.csv"
 
 # Path to read Rotogrinders player CSV files from
-path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_PITCHERS_07282018.csv"
-path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_HITTERS_07282018.csv"
+path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_PITCHERS_07042018.csv"
+path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_HITTERS_07042018.csv"
 
 # Path to read comprehensive ESPN MLB player data from
 path.ESPN = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
@@ -347,6 +347,7 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     add_constraint(sum_expr(colwise(third.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
     add_constraint(sum_expr(colwise(shortstops[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
     add_constraint(sum_expr(colwise(catchers[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(outfielders[i]) * hitters.lineup[i], i = 1:num.hitters) == 3) %>%
     
     # Players who play two positions cannot be chosen twice
     add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i] +
