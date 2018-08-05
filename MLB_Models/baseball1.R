@@ -15,34 +15,6 @@ library(purrr)
 library(DescTools)
 
 
-## Macro hockey variables: change these
-
-## ------------------------------------------------------------ ##
-
-
-# Number of lineups we wish to generate
-# Note: Each additional lineup will take longer to generate than the last 
-num.lineups = 150
-
-# Maximum overlap of players among lineups
-num.overlap = 5
-
-# Salary cap (dollars)
-salary.cap = 50000
-
-
-## Path to CSV files: change these
-
-## ------------------------------------------------------------ ##
-
-
-path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_stacked.csv"
-
-path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_2018-04-27.csv"
-path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_2018-04-27.csv"
-
-path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_2018-04-27.csv"
-
 ## Cleans Rotogrinders CSV files
 
 ## ------------------------------------------------------------ ##
@@ -73,9 +45,6 @@ clean.rotogrinders = function(roto.path) {
   df$Teams.Playing = gsub(" ", "", df$Teams.Playing)
   return(df)
 }
-
-hitters.proj = clean.rotogrinders(path.hitters.proj)
-pitchers.proj = clean.rotogrinders(path.pitchers.proj)
 
 
 ## Cleans Rotoguru CSV files for backtesting
@@ -167,18 +136,6 @@ clean.rotoguru = function(path.roto,
   return(list(pitchers = pitchers.df, 
               hitters = hitters.df))
 }
-
-hitters.actual = clean.rotoguru(path.players.actual, hitters.proj, pitchers.proj)[[2]]
-pitchers.actual = clean.rotoguru(path.players.actual, hitters.proj, pitchers.proj)[[1]]
-
-
-## Use actual scores or projected scores?
-
-## ------------------------------------------------------------ ##
-
-
-hitters = hitters.proj
-pitchers = pitchers.proj
 
 
 ## Create one stacked lineup using integer linear programming
@@ -288,9 +245,9 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
 
 
 
-## Create a nonstacked lineup
+## Create one nonstacked lineup using integer linear programming
 
-##---------------------------------------
+## ------------------------------------------------------------ ##
 
 
 nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
@@ -381,6 +338,12 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
 }
+
+
+## Create one stacked lineup using integer linear programming
+
+## ------------------------------------------------------------ ##
+
 
 create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                           hitters, pitchers) {
@@ -654,14 +617,76 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
   return(points)
 }
 
-df = create_lineups(num.lineups, num.overlap, stacked.lineup, salary.cap, hitters, pitchers)
-scores = get.scores(df, hitters, pitchers, hitters.actual, pitchers.actual) 
-max.score = max(scores)
 
-
-## Get actual maximum score
+## Macro hockey variables: change these
 
 ## ------------------------------------------------------------ ##
 
-optimum = create_lineups(1, num.overlap, nonstacked.lineup, salary.cap, hitters.actual, pitchers.actual)
-score = get.optimum(optimum, hitters.actual, pitchers.actual) 
+
+# Number of lineups we wish to generate
+# Note: Each additional lineup will take longer to generate than the last 
+num.lineups = 100
+
+# Maximum overlap of players among lineups
+num.overlap = 3:7
+
+# Salary cap (dollars)
+salary.cap = 50000
+
+
+## Path to CSV files: change these
+
+## ------------------------------------------------------------ ##
+
+
+# path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_custom.csv"
+
+year = 2018
+months = 6:7
+days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
+
+path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
+path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_YEAR-0MONTH-DAY.csv"
+path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_YEAR-0MONTH-DAY.csv"
+
+gsub.custom = function(str, year, month, day) {
+  str = gsub("YEAR", year, str)
+  str = gsub("MONTH", month, str)
+  str = gsub("DAY", day, str)
+  return(str)
+} 
+
+model.scores = c()
+max.scores = c()
+
+for(month in months) {
+  num.days = days[[toString(month)]]
+  for(day in num.days) {
+    path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
+    path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
+    path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
+    
+    hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
+    pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
+    
+    hitters.actual = clean.rotoguru(path.players.actual.temp, 
+                                    hitters.proj, 
+                                    pitchers.proj)[[2]]
+    pitchers.actual = clean.rotoguru(path.players.actual.temp, 
+                                     hitters.proj, 
+                                     pitchers.proj)[[1]]
+    
+    df = create_lineups(num.lineups, num.overlap, 
+                        stacked.lineup, salary.cap, 
+                        hitters.proj, pitchers.proj)
+    scores = get.scores(df, hitters, pitchers, 
+                        hitters.actual, pitchers.actual) 
+    model.scores = append(model.scores, max(scores))
+    
+    optimum = create_lineups(1, num.overlap, nonstacked.lineup, 
+                             salary.cap, hitters.actual, pitchers.actual)
+    score = get.optimum(optimum[1,], hitters.actual, pitchers.actual) 
+    max.scores = append(max.scores, score)
+  }
+}
+
