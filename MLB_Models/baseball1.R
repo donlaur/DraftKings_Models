@@ -340,7 +340,7 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
 }
 
 
-## Create one stacked lineup using integer linear programming
+## Create desired number of lineups with desired model
 
 ## ------------------------------------------------------------ ##
 
@@ -618,7 +618,7 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
 }
 
 
-## Macro hockey variables: change these
+## Macro baseball variables: change these
 
 ## ------------------------------------------------------------ ##
 
