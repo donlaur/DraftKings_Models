@@ -15,21 +15,16 @@ from bs4 import BeautifulSoup as BS
 import csv, time, os, datetime
 
 def main():
-	# Start scraping from here (any player's page will do)
-	url_pitchers = "https://rotogrinders.com/projected-stats/mlb-pitcher?site=draftkings&date="
-	url_hitters = "https://rotogrinders.com/projected-stats/mlb-hitter?site=draftkings&date="
 	# Write CSV files to this folder: change this
-	out_hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections/Hitters"
-	out_pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections/Pitchers"
+	output = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB"
 
 	year = 2018
 	months = range(4, 9)
 	days = {4:30, 5:31, 6:30, 7:31, 8:4}
 
-	select(url = url_pitchers, out = out_pitchers, year = year, months = months, days = days, player_type = "pitcher")
-	select(url = url_hitters, out = out_hitters, year = year, months = months, days = days, player_type = "hitter")
+	select(out = output, year = year, months = months, days = days)
 
-def select(url, out, year, months, days, player_type):
+def select(out, year, months, days):
 	# Initialize Chromedriver
 	driver = webdriver.Chrome()
 
@@ -37,11 +32,9 @@ def select(url, out, year, months, days, player_type):
 		num_days = days[month]
 		for day in range(1, num_days + 1):
 			# Get date of interest as a string
-			t = datetime.datetime(year, month, day, 0, 0)
-			t = t.strftime('%Y-%m-%d')
+			current_url = "http://rotoguru1.com/cgi-bin/byday.pl?game=dk&month={}&day={}&year={}".format(str(month), str(day), str(year))
 
-			# Append date string to URL, and visit that URL
-			current_url = url + t
+			driver = webdriver.Chrome()
 			driver.get(current_url)
 
 			# Get HTML of entire page
@@ -49,17 +42,33 @@ def select(url, out, year, months, days, player_type):
 			soup = BS(game_page, "lxml")
 
 			# Get all columns on that page
-			columns = soup.findAll("div", class_ = "rgt-col")
-			columns.content = map(lambda x: x.findAll("div"), columns)
+			tables = soup.findAll("table")
 
-			for i in range(0, len(columns.content)):
-				columns.content[i] = map(lambda x: x.text.encode('utf8'), columns.content[i])
+			longest = 0
+			for i in range(1,len(tables)):
+				if(len(tables[i]) > len(tables[longest])):
+					longest = i
 
-			rows = zip(*columns.content)
+			table = tables[longest]
+			rows = table.findAll("tr")
+			rows = map(lambda x: x.findAll("td"), rows)
+			rows_to_remove = []
+			for i in range(0, len(rows)):
+				if len(rows[i]) < 7 or len(rows[i]) > 8:
+					rows_to_remove.append(rows[i])
+				elif len(rows[i]) == 8:
+					rows[i] = rows[i][1:len(rows[i])]
+			rows = [e for e in rows if e not in rows_to_remove]
 
-			file_name = "{}.csv".format(player_type + "_" + t)
+			for i in range(0, len(rows)):
+				rows[i] = map(lambda x: x.text.encode('utf8'), rows[i])
 
-			with open(os.path.join(out, file_name), "ab") as file:
+			t = datetime.datetime(year, month, day, 0, 0)
+			t = t.strftime('%Y-%m-%d')
+			file_name = "{}.csv".format("players" + "_" + t)
+
+			os.chdir(out)
+			with open(file_name, "ab") as file:
 				writer = csv.writer(file)
 				writer.writerows(row for row in rows if row)
 				file.close()
