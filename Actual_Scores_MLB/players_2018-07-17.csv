@@ -1,0 +1,60 @@
+Pitchers ,Points,Salary,Team, Opp. ,Score, Stats Summary
+ Max Scherzer ^0,  8.70,N/A, V , , 8-8(F10),  2.0IP 2H R ER BB 4K 
+ Blake Snell ,  5.95,N/A, @ , , 8-8(F10),  1.2IP H R ER 2BB 3K Hold     
+ Aaron Nola ,  5.65,N/A, V , , 8-8(F10),  1.0IP H 2K 
+ Luis Severino ,  5.65,N/A, @ , , 8-8(F10),  1.0IP H 2K Hold     
+ Edwin Diaz ,  5.05,N/A, @ , , 8-8(F10),  1.0IP H 2R 2ER BB 2K BS Win 
+ Felipe Vazquez ,  5.05,N/A, V , , 8-8(F10),  1.0IP H BB 2K 
+ Brad Hand ,  4.25,N/A, V , , 8-8(F10),  1.0IP K 
+ Mike Foltynewicz ,  3.65,N/A, V , , 8-8(F10),  1.0IP BB K 
+ Chris Sale ^0,  3.65,N/A, @ , , 8-8(F10),  1.0IP H K 
+ Joe Jimenez ,  2.75,N/A, @ , , 8-8(F10),  0.1IP K Hold     
+ Blake Treinen ,  2.25,N/A, @ , , 8-8(F10),  1.0IP Hold     
+ Charlie Morton ,  2.10,N/A, @ , , 8-8(F10),  2.0IP 2H 2R 2ER BB 2K HB BS 
+Jacob deGrom,  1.65,N/A, V , , 8-8(F10),  1.0IP H R ER K 
+ James Happ ,  1.65,N/A, @ , , 8-8(F10),  1.0IP H R ER K Save 
+ Jose Berrios ,  1.65,N/A, @ , , 8-8(F10),  1.0IP BB Hold     
+ Jeremy Jeffress ,  1.65,N/A, V , , 8-8(F10),  1.0IP BB 
+ Josh Hader , -1.65,N/A, V , , 8-8(F10),  0.1IP 4H 3R ER K 
+ Ross Stripling , -2.65,N/A, V , , 8-8(F10),  1.2IP 4H 3R 3ER K Loss 
+Hitters ,Points,Salary,Team, Opp. ,Score, Stats Summary
+ Jean Segura , 23.00,N/A, @ , , 8-8(F10),  2/2 2R 3RBI HR 
+ George Springer , 19.00,N/A, @ , , 8-8(F10),  2/2 2R RBI HR 
+ Mike Trout ^3, 16.00,N/A, @ , , 8-8(F10),  1/2 R RBI HR BB 
+ Aaron Judge ^6, 16.00,N/A, @ , , 8-8(F10),  1/2 R RBI HR BB 
+ Scooter Gennett , 16.00,N/A, V , , 8-8(F10),  1/1 R 2RBI HR 
+ Willson Contreras ^9, 14.00,N/A, V , , 8-8(F10),  1/2 R RBI HR 
+ Trevor Story , 14.00,N/A, V , , 8-8(F10),  1/2 R RBI HR SO 
+ Christian Yelich , 14.00,N/A, V , , 8-8(F10),  1/3 R RBI HR SO 
+ Alex Bregman , 14.00,N/A, @ , , 8-8(F10),  1/3 R RBI HR SO 
+ Joey Votto , 14.00,N/A, V , , 8-8(F10),  1/3 R RBI HR E 
+ Mitch Moreland ,  6.00,N/A, @ , , 8-8(F10),  2/3 SO 
+ J.T. Realmuto ,  6.00,N/A, V , , 8-8(F10),  R 2BB 
+ Shin-Soo Choo ,  5.00,N/A, @ , , 8-8(F10),  1/2 R 
+ Matt Kemp ^5,  5.00,N/A, V , , 8-8(F10),  1/2 2B SO 
+ Michael Brantley ,  5.00,N/A, @ , , 8-8(F10),  1/2 RBI SF 
+ Jose Altuve ^2,  3.00,N/A, @ , , 8-8(F10),  1/3 SO 
+ J.D. Martinez ^4,  3.00,N/A, @ , , 8-8(F10),  1/2 SO 
+ Javier Baez ^1,  3.00,N/A, V , , 8-8(F10),  1/3 
+ Paul Goldschmidt ^3,  2.00,N/A, V , , 8-8(F10),  0/1 BB SO 
+ Eugenio Suarez ,  2.00,N/A, V , , 8-8(F10),  0/1 HBP SO 
+ Nolan Arenado ^2,  2.00,N/A, V , , 8-8(F10),  0/2 BB SO 
+ Nick Markakis ^7,  2.00,N/A, V , , 8-8(F10),  0/1 BB 
+ Nelson Cruz ,  2.00,N/A, @ , , 8-8(F10),  BB 
+ Jed Lowrie ,  2.00,N/A, @ , , 8-8(F10),  0/2 BB 
+ Freddie Freeman ^4,  0.00,N/A, V , , 8-8(F10),  0/2 
+ Brandon Crawford ^8,  0.00,N/A, V , , 8-8(F10),  0/2 2SO 
+ Jesus Aguilar ,  0.00,N/A, V , , 8-8(F10),  0/2 
+ Ozzie Albies ,  0.00,N/A, V , , 8-8(F10),  0/1 
+ Lorenzo Cain ,  0.00,N/A, V , , 8-8(F10),  0/3 SO 
+ Yadier Molina ,  0.00,N/A, V , , 8-8(F10),  0/1 
+ Mookie Betts ^1,  0.00,N/A, @ , , 8-8(F10),  0/3 2SO 
+ Bryce Harper ^6,  0.00,N/A, V , , 8-8(F10),  0/2 2SO 
+ Jose Ramirez ^5,  0.00,N/A, @ , , 8-8(F10),  0/2 SO 
+ Manny Machado ^7,  0.00,N/A, @ , , 8-8(F10),  0/2 
+ Mitch Haniger ,  0.00,N/A, @ , , 8-8(F10),  0/2 SO 
+ Charlie Blackmon ,  0.00,N/A, V , , 8-8(F10),  0/3 SO 
+ Salvador Perez ^9,  0.00,N/A, @ , , 8-8(F10),  0/2 2SO 
+ Yan Gomes ,  0.00,N/A, @ , , 8-8(F10),  0/3 2SO 
+ Jose Abreu ^8,  0.00,N/A, @ , , 8-8(F10),  0/2 SO 
+ Francisco Lindor ,  0.00,N/A, @ , , 8-8(F10),  0/1 

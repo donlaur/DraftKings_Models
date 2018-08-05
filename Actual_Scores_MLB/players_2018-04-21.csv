@@ -1,0 +1,415 @@
+Pitchers ,Points,Salary,Team, Opp. ,Score, Stats Summary
+ Sean Manaea ^0, 53.05,"$7,500",OAK,v bos, 3-0,  9.0IP 2BB 10K Win     CG 
+ Mike Clevinger ^0, 32.85,"$10,100",CLE,@ bal, 4-0,  9.0IP 2H 2BB 3K Win     CG 
+ Hyun-Jin Ryu ^9, 32.75,"$8,500",LAD,v was, 4-0,  7.0IP 2H 3BB 8K Win 
+Jacob deGrom^8, 32.15,"$10,900",NYM,@ atl, 3-4,  7.0IP 4H 2BB 10K 
+ Garrett Richards ^0, 31.90,"$7,700",LAA,v sfo, 4-3,  6.0IP 5H 2R 2ER BB 11K Win 
+ Aaron Nola ^9, 30.15,"$10,600",PHI,v pit, 6-2,  7.0IP 6H 2R 2ER 9K Win 
+ Stephen Strasburg ^9, 26.95,"$10,500",WAS,@ lad, 0-4,  7.0IP 5H 2R 2ER 2BB 10K HB Loss 
+ Blake Snell ^0, 26.75,N/A,TAM,v min, 10-1,  7.0IP 5H R ER 6K Win 
+ Chris Sale ^0, 25.55,"$12,000",BOS,@ oak, 0-3,  7.0IP 6H 3R 3ER BB 10K Loss 
+ Julio Teheran ^9, 24.75,"$6,300",ATL,v nym, 4-3,  7.0IP 4H BB 6K 
+ Dallas Keuchel ^0, 23.90,"$9,200",HOU,@ chw, 10-1,  6.0IP 4H R ER 2BB 6K Win 
+ Zack Godley ^9, 23.80,"$8,800",ARI,v sdg, 6-2,  5.1IP 6H 2R 2ER BB 8K Win 
+ Carlos Martinez ^9, 23.30,"$11,200",STL,v cin, 4-3,  6.0IP 3H 3BB 7K HB 
+ Jordan Montgomery ^0, 21.30,"$7,600",NYY,v tor, 9-1,  6.0IP 4H R ER 3BB 5K Win 
+ Tyler Anderson ^9, 20.70,"$6,200",COL,v chc, 5-2,  6.0IP 6H 2R 2ER 2BB 6K Win 
+ Kyle Gibson ^0, 16.05,N/A,MIN,@ tam, 1-10,  6.1IP 5H 4R 4ER BB 7K HB Loss 
+ Derek Holland ^0, 13.90,"$4,900",SFO,@ laa, 3-4,  6.0IP 5H 4R 4ER BB 6K Loss 
+ Clayton Richard ^9, 12.45,"$4,800",SDG,@ ari, 2-6,  5.0IP 5H 3R 3ER 3BB 6K Loss 
+ Steven Brault ^9, 12.40,"$5,200",PIT,@ phi, 2-6,  5.1IP 2H 2R 2ER 3BB 4K HB 
+ Chris Tillman ^0, 10.10,"$5,000",BAL,v cle, 0-4,  6.0IP 8H 4R 4ER BB 5K Loss 
+ Homer Bailey ^9,  9.35,"$5,400",CIN,@ stl, 3-4,  5.2IP 7H 3R 3ER 2BB 4K 
+ Jose LeClerc ,  8.50,N/A,TEX,v sea, 7-9,  2.0IP 2K 
+ Jonathan Holder ,  8.50,N/A,NYY,v tor, 9-1,  2.0IP 2K 
+ Keynan Middleton ,  8.40,"$4,000",LAA,v sfo, 4-3,  1.1IP H 3K Save 
+ Jeremy Jeffress ,  8.25,"$4,000",MIL,v mia, 6-5,  1.0IP K Win 
+ Gregory Infante ,  7.90,N/A,CHW,v hou, 1-10,  2.0IP H 2K 
+ Chris Volstad ,  7.75,"$4,000",CHW,v hou, 1-10,  3.0IP 5H R ER 3K 
+ Warwick Saupold ,  7.25,"$4,000",DET,v kan, 12-4,  2.1IP K Save 
+ Jordan Hicks ,  6.85,"$4,000",STL,v cin, 4-3,  2.1IP 2BB 2HB Win 
+ Chasen Bradford ,  6.70,"$4,000",SEA,@ tex, 9-7,  2.0IP 2H R ER K HB Win 
+ Tony Sipp ,  6.25,"$4,000",HOU,@ chw, 10-1,  1.0IP 2K 
+ Kirby Yates ,  6.25,"$4,000",SDG,@ ari, 2-6,  1.0IP 2K 
+ Jim Johnson ,  6.25,"$4,000",LAA,v sfo, 4-3,  1.0IP 2K Hold     
+ Chasen Shreve ,  6.25,"$4,000",NYY,v tor, 9-1,  1.0IP 2K 
+ Jacob Barnes ,  6.25,"$4,000",MIL,v mia, 6-5,  1.0IP 2K 
+ Tony Cingrani ,  6.25,"$4,000",LAD,v was, 4-0,  1.0IP 2K Hold     
+ Luke Farrell ,  6.25,"$4,000",CHC,@ col, 2-5,  1.0IP 2K 
+ Tanner Scott ,  5.90,"$4,000",BAL,v cle, 0-4,  2.0IP H K 
+ T.J. McFarland ,  5.90,"$4,000",ARI,v sdg, 6-2,  2.0IP H K 
+ Jose Urena ^9,  5.65,"$5,900",MIA,@ mil, 5-6,  5.0IP 4H 4R 4ER 2BB 3K 
+ Jesse Biddle ,  5.65,"$4,000",ATL,v nym, 4-3,  1.0IP BB Win 
+ James Paxton ^0,  5.60,"$9,900",SEA,@ tex, 9-7,  4.0IP 6H 5R 5ER 3BB 6K 
+ Kyle Crick ,  5.50,"$4,000",PIT,@ phi, 2-6,  0.2IP 2K 
+ Luis Garcia ,  5.50,"$4,000",PHI,v pit, 6-2,  0.2IP 2K Hold     
+ Michael Fiers ^0,  5.40,"$7,200",DET,v kan, 12-4,  5.1IP 10H 4R 2ER BB Win 
+ Pedro Strop ,  5.15,"$4,000",CHC,@ col, 2-5,  1.2IP BB K 
+ Mychal Givens ,  5.05,"$4,000",BAL,v cle, 0-4,  1.0IP 2BB 2K 
+ Luis Avilan ,  5.05,"$4,000",CHW,v hou, 1-10,  1.0IP 2H 2K 
+ Marcus Stroman ^0,  4.60,"$7,900",TOR,@ nyy, 1-9,  5.1IP 5H 8R 6ER 4BB 5K Loss 
+ Tyler Clippard ,  4.45,"$4,000",TOR,@ nyy, 1-9,  1.0IP H 2BB 2K 
+ Cory Gearrin ,  4.25,"$4,000",SFO,@ laa, 3-4,  1.0IP K 
+ Jake McGee ,  4.25,"$4,000",COL,v chc, 5-2,  1.0IP K Hold     
+ Josh Hader ,  4.25,"$4,000",MIL,v mia, 6-5,  1.0IP K 
+ Matt Andriese ,  4.10,N/A,TAM,v min, 10-1,  2.0IP 4H K 
+ Brent Suter ^9,  3.85,"$6,900",MIL,v mia, 6-5,  5.0IP 8H 5R 5ER BB 4K 
+ Dan Altavilla ,  3.80,"$4,000",SEA,@ tex, 9-7,  1.1IP H BB K Hold     
+ Kenley Jansen ,  3.65,"$4,000",LAD,v was, 4-0,  1.0IP BB K 
+ Nick Wittgren ,  3.65,"$4,000",MIA,@ mil, 5-6,  1.0IP H K Hold     
+ Drew Steckenrider ,  3.65,"$4,000",MIA,@ mil, 5-6,  1.0IP H K Hold     
+ Aaron Loup ,  3.65,"$4,000",TOR,@ nyy, 1-9,  1.0IP H K 
+ Bartolo Colon ^0,  3.35,"$5,600",TEX,v sea, 7-9,  5.2IP 7H 4R 4ER BB 2K HB 
+ Yu Darvish ^9,  3.10,"$7,800",CHC,@ col, 2-5,  4.2IP 5H 5R 5ER 4BB 4K Loss 
+ Brad Peacock ,  3.05,"$6,400",HOU,@ chw, 10-1,  1.0IP 2BB K 
+ Andrew Chafin ,  2.90,"$4,000",ARI,v sdg, 6-2,  0.2IP H K Hold     
+ Michael Feliz ,  2.90,"$4,000",PIT,@ phi, 2-6,  0.2IP H R ER 2K BS Loss 
+ Matt Bush ,  2.75,"$5,600",TEX,v sea, 7-9,  0.1IP K Hold     
+ Shane Carle ,  2.45,"$4,000",ATL,v nym, 4-3,  1.0IP 2H BB K 
+ Daniel Stumpf ,  2.40,"$4,000",DET,v kan, 12-4,  1.1IP H Hold     
+ Hector Neris ,  2.40,"$4,000",PHI,v pit, 6-2,  1.1IP H Save 
+ Wade Davis ,  2.25,"$4,000",COL,v chc, 5-2,  1.0IP Save 
+ Wandy Peralta ,  2.25,"$4,000",CIN,@ stl, 3-4,  1.0IP 
+ Joakim Soria ,  2.25,"$4,000",CHW,v hou, 1-10,  1.0IP 
+ Adam Ottavino ,  2.25,"$4,000",COL,v chc, 5-2,  1.0IP Hold     
+ Hector Rondon ,  2.25,"$4,000",HOU,@ chw, 10-1,  1.0IP 
+ Justin Wilson ,  2.15,"$4,000",CHC,@ col, 2-5,  0.1IP BB K 
+ Jerry Blevins ,  2.15,"$4,000",NYM,@ atl, 3-4,  0.1IP H K Hold     
+ Jared Hughes ,  1.65,"$4,000",CIN,@ stl, 3-4,  1.0IP H R ER K Loss 
+ Fernando Salas ,  1.65,"$4,000",ARI,v sdg, 6-2,  1.0IP H Hold     
+ Heath Hembree ,  1.05,"$4,000",BOS,@ oak, 0-3,  1.0IP H BB 
+ Matt Albers ,  1.05,"$4,000",MIL,v mia, 6-5,  1.0IP H HB 
+ Edgar Santana ,  1.05,"$4,000",PIT,@ phi, 2-6,  1.0IP H R ER BB K 
+ Sam Dyson ,  1.05,"$4,000",SFO,@ laa, 3-4,  1.0IP H BB 
+ Amir Garrett ,  0.75,"$5,500",CIN,@ stl, 3-4,  0.1IP 
+ Jose Alvarez ,  0.75,"$4,000",LAA,v sfo, 4-3,  0.1IP Hold     
+ Kevin McCarthy ,  0.75,"$4,000",KAN,@ det, 4-12,  0.1IP 
+ Edwin Diaz ,  0.60,"$4,000",SEA,@ tex, 9-7,  1.1IP H R ER 3BB K Save 
+ Adam Cimber ,  0.45,"$4,000",SDG,@ ari, 2-6,  1.0IP 3H R ER K 
+ John Axford , -0.30,"$4,000",TOR,@ nyy, 1-9,  0.2IP 2H R ER BB K 
+ Blaine Boyer , -0.35,"$4,000",KAN,@ det, 4-12,  1.0IP H R ER 
+ Brian Duensing , -0.45,"$4,000",CHC,@ col, 2-5,  0.1IP BB HB 
+ Marc Rzepczynski , -0.45,"$4,000",SEA,@ tex, 9-7,  0.1IP H BB Hold     
+ Adam Morgan , -0.60,"$4,300",PHI,v pit, 6-2,  0.0IP H 
+ Burch Smith , -0.65,"$4,000",KAN,@ det, 4-12,  1.2IP 2H 2R 2ER 2BB K 
+ Jeurys Familia , -0.90,"$4,000",NYM,@ atl, 3-4,  0.2IP 3H 2R 2ER BB 2K BS Loss 
+ Blake Wood , -1.05,"$4,000",LAA,v sfo, 4-3,  0.1IP H R ER 2BB K Hold     
+ Felipe Vazquez , -1.05,"$4,000",PIT,@ phi, 2-6,  0.1IP 3H 2R ER K 
+ Luke Gregerson , -1.10,"$4,000",STL,v cin, 4-3,  0.2IP H R ER Hold     
+ Chris Martin , -1.55,"$4,000",TEX,v sea, 7-9,  1.0IP 2H R ER BB 
+ Kyle Barraclough , -1.55,"$4,000",MIA,@ mil, 5-6,  1.0IP H R ER 2BB BS 
+ Tim Hill , -1.80,"$4,000",KAN,@ det, 4-12,  0.0IP H 2BB 
+ Jordan Lyles , -2.15,"$4,000",SDG,@ ari, 2-6,  1.0IP 2H 2R 2ER 2BB K 
+ A.J. Ramos , -2.45,"$4,000",NYM,@ atl, 3-4,  0.1IP 2R 2ER 2BB K Hold     
+ Junichi Tazawa , -2.60,"$4,000",MIA,@ mil, 5-6,  0.0IP H R ER Loss 
+ Carlos Torres , -3.55,N/A,WAS,@ lad, 0-4,  1.0IP 2H 2R 2ER BB 
+ Danny Duffy ^0, -4.70,"$8,200",KAN,@ det, 4-12,  4.2IP 10H 6R 6ER 2BB 2K Loss 
+ Tyler Kinley , -4.75,N/A,MIN,@ tam, 1-10,  1.0IP 4H 3R 3ER BB K 
+ Sam Freeman , -5.20,"$4,000",ATL,v nym, 4-3,  0.0IP H 3R 2ER BB 
+ Justin Grimm , -5.65,"$4,000",KAN,@ det, 4-12,  0.1IP 2H 3R 3ER 2BB K 
+ Gabriel Moya , -6.30,N/A,MIN,@ tam, 1-10,  0.2IP 3H 3R 3ER 
+ Tyler Lyons , -6.40,"$4,000",STL,v cin, 4-3,  0.0IP 3H 2R 2ER BB BS 
+ Alex  Claudio ,-10.40,"$4,000",TEX,v sea, 7-9,  0.0IP 4H 4R 4ER BS Loss 
+ Lucas Giolito ^0,-18.70,"$5,100",CHW,v hou, 1-10,  2.0IP 5H 9R 9ER 7BB K Loss 
+Hitters ,Points,Salary,Team, Opp. ,Score, Stats Summary
+ Josh Reddick ^4, 38.00,"$4,100",HOU,@ chw, 10-1,  2/3 3R 5RBI 2HR BB SO 
+ C.J. Cron ^2, 34.00,N/A,TAM,v min, 10-1,  2/4 2R 4RBI 2HR HBP SO 
+ Mike Trout ^2, 29.00,"$5,500",LAA,v sfo, 4-3,  3/4 R RBI 2-2B HR SB 
+ Marcus Semien ^1, 28.00,"$3,100",OAK,v bos, 3-0,  2/3 3R RBI HR BB SO SB E 
+ Rhys Hoskins ^4, 27.00,"$5,400",PHI,v pit, 6-2,  2/3 2R 4RBI HR BB 
+ Nick Castellanos ^4, 26.00,"$4,600",DET,v kan, 12-4,  3/5 R 3RBI 2B HR 
+ Robinson Cano ^3, 26.00,"$4,200",SEA,@ tex, 9-7,  3/5 3R 2RBI HR 
+ Aaron Judge ^2, 25.00,"$5,600",NYY,v tor, 9-1,  2/4 2R 3RBI HR BB 
+ Yadier Molina ^2, 24.00,"$3,500",STL,v cin, 4-3,  2/3 R RBI HR BB SB 
+ Travis Shaw ^4, 22.00,"$4,300",MIL,v mia, 6-5,  1/2 3R RBI HR 2BB 
+ Nelson Cruz ^4, 22.00,"$4,300",SEA,@ tex, 9-7,  3/5 R 2RBI HR SO 
+ Paul DeJong ^6, 21.00,"$3,700",STL,v cin, 4-3,  2/4 R 2RBI 2B HR 
+ Isiah Kiner-Falefa ^2, 21.00,"$2,500",TEX,v sea, 7-9,  2/4 2R RBI 2BB SB 
+ Jose Ramirez ^3, 20.00,"$4,900",CLE,@ bal, 4-0,  3/4 R RBI HR 
+ Miguel Cabrera ^3, 20.00,"$4,100",DET,v kan, 12-4,  2/4 2R 3RBI 2BB 
+ A.J. Pollock ^4, 19.00,"$4,600",ARI,v sdg, 6-2,  2/4 R 2RBI HR CS 
+ Yonder Alonso ^6, 19.00,"$4,300",CLE,@ bal, 4-0,  2/3 R RBI HR BB 
+ Sean Rodriguez ^1, 19.00,"$2,500",PIT,@ phi, 2-6,  2/4 2R RBI HR 2SO 
+ Brandon Belt ^5, 18.00,"$3,600",SFO,@ laa, 3-4,  1/3 R 2RBI HR BB SO 
+ Lewis Brinson ^7, 18.00,"$2,700",MIA,@ mil, 5-6,  1/4 R 3RBI HR 3SO 
+ Joey Wendle ^6, 18.00,N/A,TAM,v min, 10-1,  3/4 2R 3B SO 
+ Paul Goldschmidt ^3, 17.00,"$4,800",ARI,v sdg, 6-2,  2/4 R RBI 2B 3B 2SO 
+ Joc Pederson ^5, 17.00,"$3,000",LAD,v was, 4-0,  2/4 R RBI HR 2SO CS 
+ Deven Marrero ^7, 17.00,"$2,600",ARI,v sdg, 6-2,  2/4 2R RBI 3B 
+ Jose Altuve ^2, 16.00,"$5,100",HOU,@ chw, 10-1,  2/3 2R RBI 2BB 
+ Cody Bellinger ^4, 16.00,"$4,100",LAD,v was, 4-0,  1/4 R 2RBI HR SO 
+ Mitch Haniger ^6, 16.00,"$4,000",SEA,@ tex, 9-7,  1/3 R 2RBI HR SO SF 
+ Albert Pujols ^4, 16.00,"$3,800",LAA,v sfo, 4-3,  1/4 R 2RBI HR SO 
+ Shin-Soo Choo ^1, 16.00,"$3,400",TEX,v sea, 7-9,  2/5 R RBI 2-2B BB SO 
+ Leonys Martin ^1, 16.00,"$3,400",DET,v kan, 12-4,  2/5 2R RBI 2B BB 
+ Marwin Gonzalez ^8, 16.00,"$3,100",HOU,@ chw, 10-1,  2/4 R 2RBI 2B BB SO 
+ Miguel Andujar ^7, 16.00,"$2,900",NYY,v tor, 9-1,  2/4 R 3RBI 2B SO 
+ Jose Reyes ^9, 16.00,"$2,600",NYM,@ atl, 3-4,  3/4 R SB 
+ Dee Gordon ^1, 15.00,"$4,000",SEA,@ tex, 9-7,  3/5 R RBI 2B CS 
+ Carlos Correa ^3, 14.00,"$5,100",HOU,@ chw, 10-1,  2/3 2R RBI BB SO 
+ Freddie Freeman ^3, 14.00,"$4,700",ATL,v nym, 4-3,  2/4 2RBI 2-2B 2SO 
+ Dexter Fowler ^5, 14.00,"$3,500",STL,v cin, 4-3,  1/4 R RBI HR 
+ Franchy Cordero ^5, 14.00,"$3,400",SDG,@ ari, 2-6,  2/3 2RBI 2B BB CS 
+ Yan Gomes ^7, 14.00,"$3,300",CLE,@ bal, 4-0,  1/4 R RBI HR 2SO 
+ Jefry Marte ^7, 14.00,"$3,200",LAA,v sfo, 4-3,  1/2 R RBI HR 
+ Gerardo Parra ^2, 14.00,"$3,200",COL,v chc, 5-2,  1/4 R 2RBI SO SB 
+ Nomar Mazara ^3, 14.00,"$3,200",TEX,v sea, 7-9,  2/4 R RBI 2B BB SO 
+ Kike Hernandez , 14.00,"$3,100",LAD,v was, 4-0,  1/1 R RBI HR 
+ Jesus Aguilar , 14.00,"$3,100",MIL,v mia, 6-5,  1/1 R RBI HR 
+ Derek Dietrich ^2, 14.00,"$2,900",MIA,@ mil, 5-6,  1/4 R RBI HR SO 
+ JaCoby Jones ^6, 14.00,"$2,800",DET,v kan, 12-4,  1/5 R RBI HR SO 
+ Trayce Thompson ^7, 14.00,"$2,700",CHW,v hou, 1-10,  1/4 R RBI HR SO 
+ Johan Camargo ^7, 14.00,"$2,600",ATL,v nym, 4-3,  1/3 R RBI 3B BB 2SO 
+ Denard Span ^1, 14.00,N/A,TAM,v min, 10-1,  2/5 R 3RBI 
+ Daniel Robertson ^5, 14.00,N/A,TAM,v min, 10-1,  1/4 R RBI HR 
+ Christian Villanueva ^4, 13.00,"$3,800",SDG,@ ari, 2-6,  2/4 R SB 
+ Ender Inciarte ^1, 13.00,"$3,300",ATL,v nym, 4-3,  2/5 RBI SO SB CS E 
+ Dixon Machado ^9, 13.00,"$3,200",DET,v kan, 12-4,  1/3 2R RBI 2BB 
+ Jose Iglesias ^8, 13.00,"$2,800",DET,v kan, 12-4,  3/5 2R 
+ Abraham Almonte ^7, 13.00,"$2,600",KAN,@ det, 4-12,  3/4 2R 
+ Didi Gregorius ^3, 12.00,"$5,000",NYY,v tor, 9-1,  2/4 R RBI BB SO 
+ Michael Conforto ^1, 12.00,"$4,600",NYM,@ atl, 3-4,  1/4 R BB SB 
+ Jeimer Candelario ^2, 12.00,"$3,500",DET,v kan, 12-4,  2/5 2RBI BB 2SO 
+ Brian Anderson ^4, 12.00,"$3,300",MIA,@ mil, 5-6,  2/3 RBI 2B HBP SO E 
+ Dansby Swanson ^6, 12.00,"$3,100",ATL,v nym, 4-3,  1/3 R BB 2SO SB 
+ Albert Almora ^1, 12.00,"$3,000",CHC,@ col, 2-5,  2/3 R 2B BB 
+ Jurickson Profar ^6, 12.00,"$2,900",TEX,v sea, 7-9,  2/5 2RBI 2B 
+ Jesse Winker ^1, 12.00,"$2,900",CIN,@ stl, 3-4,  2/3 R 2BB 
+ Adeiny Hechavarria ^9, 12.00,N/A,TAM,v min, 10-1,  2/3 R RBI BB 
+ George Springer ^1, 11.00,"$4,800",HOU,@ chw, 10-1,  1/4 2R 2B BB 
+ Brett Gardner ^1, 11.00,"$4,100",NYY,v tor, 9-1,  1/3 2R RBI BB SO SF 
+ Jean Segura ^2, 11.00,"$3,700",SEA,@ tex, 9-7,  1/5 R 2RBI 2B SO 
+ Starlin Castro ^3, 11.00,"$3,600",MIA,@ mil, 5-6,  3/4 R 
+ Jose Peraza ^2, 11.00,"$3,000",CIN,@ stl, 3-4,  1/2 R RBI 2HBP S 
+ Mike Tauchman ^7, 11.00,"$2,800",COL,v chc, 5-2,  0/2 R 2BB SO SB 
+ Matt Chapman ^5, 10.00,"$4,000",OAK,v bos, 3-0,  1/3 3B BB 
+ Asdrubal Cabrera ^3, 10.00,"$4,000",NYM,@ atl, 3-4,  2/4 2RBI SO 
+ Carlos Santana ^2, 10.00,"$3,800",PHI,v pit, 6-2,  0/1 2R 2BB HBP 
+ Scooter Gennett ^4, 10.00,"$3,200",CIN,@ stl, 3-4,  2/5 2RBI 2SO 
+ Alcides Escobar ^8, 10.00,"$2,600",KAN,@ det, 4-12,  2/4 R 2B 
+ Brian Dozier ^1, 10.00,N/A,MIN,@ tam, 1-10,  2/4 R 2B SO 
+ Ryan Braun ^3,  9.00,"$4,600",MIL,v mia, 6-5,  1/3 R RBI 2B SF 
+ D.J. LeMahieu ^1,  9.00,"$4,600",COL,v chc, 5-2,  1/5 R RBI 2B 
+ Willson Contreras ^5,  9.00,"$4,400",CHC,@ col, 2-5,  1/4 2RBI 2B 
+ Yasmani Grandal ^3,  9.00,"$3,300",LAD,v was, 4-0,  1/2 R BB HBP SO 
+ Chris Owings ^5,  9.00,"$3,200",ARI,v sdg, 6-2,  1/2 R 2BB SO CS 
+ Ronald Guzman ^8,  9.00,"$2,900",TEX,v sea, 7-9,  1/5 R RBI 2B SO 
+ Pablo Sandoval ^4,  9.00,"$2,900",SFO,@ laa, 3-4,  1/4 R RBI 2B 3SO 
+ Robinson Chirinos ^7,  9.00,"$2,900",TEX,v sea, 7-9,  1/4 R 2B BB 3SO 
+ Eric Sogard ^6,  9.00,"$2,700",MIL,v mia, 6-5,  1/4 2RBI 2B SO 
+ James McCann ^7,  9.00,"$2,600",DET,v kan, 12-4,  1/3 R 2BB SO E 
+ Wilson Ramos ^7,  9.00,N/A,TAM,v min, 10-1,  1/4 R RBI 2B 
+ Mallex Smith ^8,  9.00,N/A,TAM,v min, 10-1,  1/3 2R BB 2SO 
+ Nolan Arenado ^4,  8.00,"$5,100",COL,v chc, 5-2,  2/4 RBI 
+ Joey Votto ^3,  8.00,"$4,200",CIN,@ stl, 3-4,  0/1 4BB 
+ Yasiel Puig ^7,  8.00,"$4,000",LAD,v was, 4-0,  1/3 SO SB 
+ Eddie Rosario ^5,  8.00,N/A,MIN,@ tam, 1-10,  2/3 2B SO S 
+ Robbie Grossman ^4,  8.00,N/A,MIN,@ tam, 1-10,  2/4 2B SO 
+ Eric Thames ^5,  7.00,"$4,700",MIL,v mia, 6-5,  1/3 RBI BB 
+ Trevor Story ^5,  7.00,"$4,200",COL,v chc, 5-2,  1/4 RBI 2B 2SO 
+ Jason Kipnis ^2,  7.00,"$3,800",CLE,@ bal, 4-0,  1/3 R BB SO 
+ Jed Lowrie ^3,  7.00,"$3,800",OAK,v bos, 3-0,  1/4 RBI 2B SO 
+ Odubel Herrera ^3,  7.00,"$3,600",PHI,v pit, 6-2,  1/4 2R SO 
+ Steven Pearce ^1,  7.00,"$3,400",TOR,@ nyy, 1-9,  1/3 RBI BB 
+ Victor Martinez ^5,  7.00,"$3,300",DET,v kan, 12-4,  1/4 R RBI SF 
+ Dan Vogelbach ^7,  7.00,"$3,100",SEA,@ tex, 9-7,  1/2 2BB SO 
+ Jorge Soler ^5,  7.00,"$3,000",KAN,@ det, 4-12,  1/3 2B BB 
+ Stephen Piscotty ^2,  7.00,"$3,000",OAK,v bos, 3-0,  1/4 RBI 2B 2SO 
+ Charlie Blackmon ^3,  6.00,"$5,600",COL,v chc, 5-2,  0/2 R 2BB 2SO 
+ Justin Upton ^3,  6.00,"$4,500",LAA,v sfo, 4-3,  0/2 R 2BB 2SO 
+ Alex Bregman ^6,  6.00,"$4,100",HOU,@ chw, 10-1,  2/5 SO 
+ Corey Dickerson ^5,  6.00,"$3,900",PIT,@ phi, 2-6,  2/4 
+ Ketel Marte ^2,  6.00,"$3,500",ARI,v sdg, 6-2,  0/2 R 2BB 
+ Andrew McCutchen ^3,  6.00,"$3,500",SFO,@ laa, 3-4,  0/2 R 2BB 2SO CS 
+ Evan Longoria ^6,  6.00,"$3,100",SFO,@ laa, 3-4,  2/4 2SO 
+ Randal Grichuk ^8,  6.00,"$3,000",TOR,@ nyy, 1-9,  0/1 R 2BB SO 
+ Carlos Asuaje ^7,  6.00,"$2,900",SDG,@ ari, 2-6,  2/4 CS 
+ Austin Romine ^8,  6.00,"$2,600",NYY,v tor, 9-1,  0/2 R 2BB SO 
+ Manny Machado ^3,  5.00,"$5,100",BAL,v cle, 0-4,  1/3 BB SO 
+ Javier Baez ^2,  5.00,"$4,700",CHC,@ col, 2-5,  1/4 R 
+ Khris Davis ^4,  5.00,"$4,200",OAK,v bos, 3-0,  1/4 2B 2SO 
+ Yulieski Gurriel ^5,  5.00,"$4,200",HOU,@ chw, 10-1,  1/4 RBI SO SF 
+ Scott Kingery ^6,  5.00,"$4,100",PHI,v pit, 6-2,  1/4 RBI 2SO 
+ Jose Abreu ^3,  5.00,"$4,100",CHW,v hou, 1-10,  1/3 BB SO 
+ Marcell Ozuna ^4,  5.00,"$4,000",STL,v cin, 4-3,  1/4 R SO 
+ Starling Marte ^3,  5.00,"$4,000",PIT,@ phi, 2-6,  1/4 RBI 2SO 
+ Whit Merrifield ^2,  5.00,"$3,900",KAN,@ det, 4-12,  1/4 RBI SO SF 
+ Tim Anderson ^1,  5.00,"$3,900",CHW,v hou, 1-10,  1/4 2B SO 
+ Michael Brantley ^4,  5.00,"$3,900",CLE,@ bal, 4-0,  1/4 RBI CS 
+ Jay Bruce ^4,  5.00,"$3,900",NYM,@ atl, 3-4,  1/4 RBI SO 
+ Jose Pirela ^2,  5.00,"$3,700",SDG,@ ari, 2-6,  1/4 R 2SO 
+ Andrelton Simmons ^6,  5.00,"$3,600",LAA,v sfo, 4-3,  1/3 2B 
+ Evan Gattis ^9,  5.00,"$3,600",HOU,@ chw, 10-1,  1/3 BB SO 
+ Matt Carpenter ^1,  5.00,"$3,500",STL,v cin, 4-3,  1/4 2B 
+ Adrian Beltre ^4,  5.00,"$3,300",TEX,v sea, 7-9,  1/4 RBI SO SF 
+ Harrison Bader ^8,  5.00,"$3,200",STL,v cin, 4-3,  1/2 BB 
+ Justin Bour ^5,  5.00,"$3,100",MIA,@ mil, 5-6,  1/4 R 
+ Daniel Descalso ,  5.00,"$3,000",ARI,v sdg, 6-2,  1/1 RBI 
+ Cheslor Cuthbert ^6,  5.00,"$2,900",KAN,@ det, 4-12,  1/4 R 
+ Cameron Maybin ^6,  5.00,"$2,900",MIA,@ mil, 5-6,  1/4 R SO 
+ Chance Sisco ^8,  5.00,"$2,800",BAL,v cle, 0-4,  1/2 BB 
+ Mark Canha ^7,  5.00,"$2,800",OAK,v bos, 3-0,  1/3 2B 
+ Jorge Alfaro ^8,  5.00,"$2,700",PHI,v pit, 6-2,  1/3 BB 
+ Guillermo Heredia ,  5.00,"$2,600",SEA,@ tex, 9-7,  1/2 R 
+ Phillip Ervin ,  5.00,"$2,500",CIN,@ stl, 3-4,  1/2 R 
+ Drew Butera ^9,  5.00,"$2,300",KAN,@ det, 4-12,  1/4 RBI 
+ David Bote ^8,  5.00,N/A,CHC,@ col, 2-5,  1/3 2B 2SO CS 
+ Bryce Harper ^3,  4.00,"$5,200",WAS,@ lad, 0-4,  0/2 2BB 
+ Giancarlo Stanton ^4,  4.00,"$5,000",NYY,v tor, 9-1,  0/4 R BB 2SO 
+ Ozzie Albies ^2,  4.00,"$4,200",ATL,v nym, 4-3,  0/3 R BB SO E 
+ Wilmer Flores ,  4.00,"$3,300",NYM,@ atl, 3-4,  R BB 
+ Aaron Hicks ^5,  4.00,"$3,300",NYY,v tor, 9-1,  0/3 R BB 
+ Mike Zunino ^8,  4.00,"$3,200",SEA,@ tex, 9-7,  0/3 R HBP SO 
+ Domingo Santana ,  4.00,"$3,100",MIL,v mia, 6-5,  R BB 
+ Jon Jay ^1,  4.00,"$3,000",KAN,@ det, 4-12,  0/5 2RBI 
+ Ryan Flaherty ,  4.00,"$2,900",ATL,v nym, 4-3,  R BB 
+ Drew Robinson ,  4.00,"$2,800",TEX,v sea, 7-9,  R BB 
+ Tony Wolters ^8,  4.00,"$2,700",COL,v chc, 5-2,  0/2 BB HBP SO 
+ Francisco Lindor ^1,  3.00,"$4,900",CLE,@ bal, 4-0,  1/4 SO CS E 
+ Gregory Polanco ^2,  3.00,"$4,500",PIT,@ phi, 2-6,  1/4 SO 
+ Trea Turner ^1,  3.00,"$4,400",WAS,@ lad, 0-4,  1/4 
+ Ian Happ ^6,  3.00,"$4,300",CHC,@ col, 2-5,  1/3 
+ Lorenzo Cain ^1,  3.00,"$4,200",MIL,v mia, 6-5,  1/4 
+ Mike Moustakas ^3,  3.00,"$4,000",KAN,@ det, 4-12,  1/5 
+ Maikel Franco ^5,  3.00,"$3,800",PHI,v pit, 6-2,  1/4 2SO 
+ Lucas Duda ^4,  3.00,"$3,500",KAN,@ det, 4-12,  1/4 E 
+ Jonathan Villar ^7,  3.00,"$3,500",MIL,v mia, 6-5,  1/3 CS 
+ Chris Taylor ^1,  3.00,"$3,500",LAD,v was, 4-0,  1/4 SO 
+ Aledmys Diaz ^7,  3.00,"$3,400",TOR,@ nyy, 1-9,  1/4 
+ Kendrys Morales ^4,  3.00,"$3,400",TOR,@ nyy, 1-9,  1/4 SO 
+ Neil Walker ^6,  3.00,"$3,300",NYY,v tor, 9-1,  1/4 2SO 
+ Freddy Galvis ^6,  3.00,"$3,200",SDG,@ ari, 2-6,  1/4 SO 
+ Hernan Perez ,  3.00,"$3,200",MIL,v mia, 6-5,  1/1 
+ Colin Moran ^7,  3.00,"$3,200",PIT,@ phi, 2-6,  1/4 SO 
+ Aaron Altherr ^7,  3.00,"$3,200",PHI,v pit, 6-2,  1/4 SO 
+ Yolmer Sanchez ^8,  3.00,"$3,200",CHW,v hou, 1-10,  1/4 
+ Kurt Suzuki ,  3.00,"$3,000",ATL,v nym, 4-3,  1/1 
+ Alex Blandino ^8,  3.00,"$3,000",CIN,@ stl, 3-4,  1/4 E 
+ Adam Frazier ,  3.00,"$3,000",PIT,@ phi, 2-6,  1/1 E 
+ Lourdes Gurriel ^9,  3.00,"$2,900",TOR,@ nyy, 1-9,  1/3 SO 
+ Chase Headley ,  3.00,"$2,900",SDG,@ ari, 2-6,  1/1 
+ Matt Wieters ^6,  3.00,"$2,900",WAS,@ lad, 0-4,  1/4 2SO 
+ Ronald Torreyes ^9,  3.00,"$2,800",NYY,v tor, 9-1,  1/4 SO 
+ J.R. Murphy ^8,  3.00,"$2,500",ARI,v sdg, 6-2,  1/4 2SO 
+ Mac Williamson ^7,  3.00,"$2,400",SFO,@ laa, 3-4,  1/4 
+ Gregor Blanco ^2,  3.00,"$2,400",SFO,@ laa, 3-4,  1/3 SO 
+ Nick Hundley ^9,  3.00,"$2,300",SFO,@ laa, 3-4,  1/4 3SO 
+ Carlos Perez ^8,  3.00,N/A,ATL,v nym, 4-3,  1/3 SO E 
+ Ehire Adrianza ^7,  3.00,N/A,MIN,@ tam, 1-10,  1/3 SO 
+ Max Kepler ^8,  3.00,N/A,MIN,@ tam, 1-10,  1/3 
+ Ryan LaMarre ^9,  3.00,N/A,MIN,@ tam, 1-10,  1/3 SO 
+ Mookie Betts ^1,  2.00,"$5,700",BOS,@ oak, 0-3,  0/3 BB 
+ Kris Bryant ^3,  2.00,"$5,400",CHC,@ col, 2-5,  0/3 BB SO 
+ Edwin Encarnacion ^5,  2.00,"$4,800",CLE,@ bal, 4-0,  0/3 BB 2SO 
+ Andrew Benintendi ^2,  2.00,"$4,300",BOS,@ oak, 0-3,  0/3 BB 
+ Corey Seager ^2,  2.00,"$4,100",LAD,v was, 4-0,  0/3 BB 
+ Ryan Zimmerman ^4,  2.00,"$4,000",WAS,@ lad, 0-4,  0/3 BB 
+ Matt Davidson ^5,  2.00,"$3,700",CHW,v hou, 1-10,  0/3 BB 2SO 
+ Joey Gallo ,  2.00,"$3,700",TEX,v sea, 7-9,  BB 
+ Adrian Gonzalez ^6,  2.00,"$3,400",NYM,@ atl, 3-4,  0/3 BB 
+ Scott Schebler ^6,  2.00,"$3,200",CIN,@ stl, 3-4,  0/3 HBP SO 
+ Welington Castillo ^4,  2.00,"$3,100",CHW,v hou, 1-10,  0/2 BB 
+ Nick Markakis ^4,  2.00,"$3,100",ATL,v nym, 4-3,  0/3 BB SO 
+ Ryan McMahon ^6,  2.00,"$3,000",COL,v chc, 5-2,  0/3 BB 
+ Matt Adams ,  2.00,"$3,000",WAS,@ lad, 0-4,  BB 
+ Nick Ahmed ^6,  2.00,"$2,900",ARI,v sdg, 6-2,  0/3 BB SO 
+ Max Muncy ^8,  2.00,"$2,900",LAD,v was, 4-0,  0/2 BB SO 
+ Miguel Rojas ^1,  2.00,"$2,800",MIA,@ mil, 5-6,  0/3 BB 
+ Renato Nunez ^5,  2.00,"$2,600",TEX,v sea, 7-9,  0/3 BB 
+ Omar Narvaez ,  2.00,"$2,500",CHW,v hou, 1-10,  BB 
+ Jose Lobaton ^7,  2.00,"$2,400",NYM,@ atl, 3-4,  0/3 BB 
+ Carlos Tocci ^9,  2.00,"$2,200",TEX,v sea, 7-9,  0/2 HBP 2SO S 
+ Miguel Sano ^3,  2.00,N/A,MIN,@ tam, 1-10,  0/3 RBI SO SF 
+ Anthony Rizzo ^4,  0.00,"$5,000",CHC,@ col, 2-5,  0/4 SO 
+ J.D. Martinez ^4,  0.00,"$4,700",BOS,@ oak, 0-3,  0/3 2SO 
+ Kyle Schwarber ,  0.00,"$4,700",CHC,@ col, 2-5,  0/1 
+ Christian Yelich ^2,  0.00,"$4,600",MIL,v mia, 6-5,  0/4 SO 
+ Hanley Ramirez ^3,  0.00,"$4,500",BOS,@ oak, 0-3,  0/4 2SO 
+ Ian Desmond ,  0.00,"$4,300",COL,v chc, 5-2,  0/1 SO 
+ Ian Kinsler ^1,  0.00,"$4,300",LAA,v sfo, 4-3,  0/4 
+ Todd Frazier ^5,  0.00,"$4,200",NYM,@ atl, 3-4,  0/4 SO 
+ Adam Jones ^4,  0.00,"$4,200",BAL,v cle, 0-4,  0/4 
+ David Peralta ^1,  0.00,"$4,200",ARI,v sdg, 6-2,  0/5 2SO 
+ Zack Cozart ^5,  0.00,"$4,100",LAA,v sfo, 4-3,  0/3 
+ Eric Hosmer ^3,  0.00,"$4,000",SDG,@ ari, 2-6,  0/4 4SO 
+ Yoenis Cespedes ^2,  0.00,"$4,000",NYM,@ atl, 3-4,  0/5 3SO 
+ Cesar Hernandez ^1,  0.00,"$4,000",PHI,v pit, 6-2,  0/5 2SO 
+ Matt Olson ^6,  0.00,"$3,900",OAK,v bos, 3-0,  0/4 SO 
+ Manuel Margot ^1,  0.00,"$3,900",SDG,@ ari, 2-6,  0/4 SO 
+ Rafael Devers ^6,  0.00,"$3,900",BOS,@ oak, 0-3,  0/3 2SO 
+ Yangervis Solarte ^3,  0.00,"$3,900",TOR,@ nyy, 1-9,  0/4 SO 
+ Eduardo Nunez ^5,  0.00,"$3,800",BOS,@ oak, 0-3,  0/3 
+ Addison Russell ^7,  0.00,"$3,800",CHC,@ col, 2-5,  0/3 SO 
+ Adam Duvall ^5,  0.00,"$3,800",CIN,@ stl, 3-4,  0/3 2SO 
+ Jose Martinez ^3,  0.00,"$3,700",STL,v cin, 4-3,  0/4 2SO 
+ Josh Bell ^4,  0.00,"$3,700",PIT,@ phi, 2-6,  0/3 
+ Brian McCann ^7,  0.00,"$3,700",HOU,@ chw, 10-1,  0/5 SO 
+ Yoan Moncada ^6,  0.00,"$3,700",CHW,v hou, 1-10,  0/1 
+ Matt Kemp ^6,  0.00,"$3,700",LAD,v was, 4-0,  0/3 SO 
+ Kyle Seager ^5,  0.00,"$3,600",SEA,@ tex, 9-7,  0/5 
+ Luis Valbuena ,  0.00,"$3,500",LAA,v sfo, 4-3,  0/1 SO 
+ Howie Kendrick ^2,  0.00,"$3,400",WAS,@ lad, 0-4,  0/4 2SO 
+ Francisco Cervelli ^6,  0.00,"$3,400",PIT,@ phi, 2-6,  0/4 SO 
+ Kevin Pillar ^5,  0.00,"$3,400",TOR,@ nyy, 1-9,  0/4 2SO 
+ Jackie Bradley ^8,  0.00,"$3,400",BOS,@ oak, 0-3,  0/3 3SO 
+ Bradley Zimmer ^9,  0.00,"$3,300",CLE,@ bal, 4-0,  0/3 SO 
+ Luke Maile ^6,  0.00,"$3,200",TOR,@ nyy, 1-9,  0/4 SO E 
+ Joe Panik ^1,  0.00,"$3,200",SFO,@ laa, 3-4,  0/5 SO 
+ Teoscar Hernandez ^2,  0.00,"$3,200",TOR,@ nyy, 1-9,  0/4 2SO 
+ Chris Davis ^5,  0.00,"$3,200",BAL,v cle, 0-4,  0/3 SO 
+ Billy Hamilton ,  0.00,"$3,200",CIN,@ stl, 3-4,  
+ Nick Williams ,  0.00,"$3,100",PHI,v pit, 6-2,  0/1 SO 
+ David Freese ,  0.00,"$3,100",PIT,@ phi, 2-6,  0/1 SO E 
+ Niko Goodrum ,  0.00,"$3,100",DET,v kan, 12-4,  
+ Avisail Garcia ^2,  0.00,"$3,000",CHW,v hou, 1-10,  0/4 2SO 
+ Michael A. Taylor ^7,  0.00,"$3,000",WAS,@ lad, 0-4,  0/3 2SO 
+ Rajai Davis ,  0.00,"$3,000",CLE,@ bal, 4-0,  CS 
+ Jonathan Lucroy ^9,  0.00,"$3,000",OAK,v bos, 3-0,  0/3 SO 
+ Tucker Barnhart ^7,  0.00,"$3,000",CIN,@ stl, 3-4,  0/4 2SO 
+ Tim Beckham ^6,  0.00,"$3,000",BAL,v cle, 0-4,  0/3 
+ Ben Gamel ^9,  0.00,"$3,000",SEA,@ tex, 9-7,  0/2 
+ Chad Pinder ^8,  0.00,"$3,000",OAK,v bos, 3-0,  0/3 2SO 
+ Pedro Alvarez ^2,  0.00,"$3,000",BAL,v cle, 0-4,  0/4 SO 
+ Jett Bandy ^8,  0.00,"$2,900",MIL,v mia, 6-5,  0/3 2SO 
+ Derek Fisher ,  0.00,"$2,900",HOU,@ chw, 10-1,  0/1 SO 
+ Pat Valaika ,  0.00,"$2,900",COL,v chc, 5-2,  0/1 
+ Austin Hedges ^8,  0.00,"$2,900",SDG,@ ari, 2-6,  0/3 
+ Brandon Crawford ^8,  0.00,"$2,900",SFO,@ laa, 3-4,  0/4 3SO 
+ Tzu-Wei Lin ^9,  0.00,"$2,900",BOS,@ oak, 0-3,  0/2 SO 
+ Wilmer Difo ^8,  0.00,"$2,900",WAS,@ lad, 0-4,  0/3 2SO 
+ Adam Engel ^9,  0.00,"$2,900",CHW,v hou, 1-10,  0/3 
+ Preston Tucker ^5,  0.00,"$2,900",ATL,v nym, 4-3,  0/4 2SO 
+ Tyler Naquin ^8,  0.00,"$2,900",CLE,@ bal, 4-0,  0/4 SO 
+ Tyler O'Neill ,  0.00,"$2,900",STL,v cin, 4-3,  0/1 
+ Tommy La Stella ,  0.00,"$2,800",CHC,@ col, 2-5,  0/1 
+ Greg Garcia ,  0.00,"$2,800",STL,v cin, 4-3,  
+ Chase Utley ,  0.00,"$2,800",LAD,v was, 4-0,  0/1 
+ Leury Garcia ,  0.00,"$2,800",CHW,v hou, 1-10,  0/3 2SO 
+ Kolten Wong ^7,  0.00,"$2,800",STL,v cin, 4-3,  0/4 
+ Anthony Santander ^7,  0.00,"$2,700",BAL,v cle, 0-4,  0/3 
+ Gorkys Hernandez ,  0.00,"$2,700",SFO,@ laa, 3-4,  
+ Chris Young ^8,  0.00,"$2,700",LAA,v sfo, 4-3,  0/3 2SO 
+ Austin Jackson ,  0.00,"$2,700",SFO,@ laa, 3-4,  0/1 SO 
+ Sandy Leon ^7,  0.00,"$2,700",BOS,@ oak, 0-3,  0/3 
+ Jake Marisnick ,  0.00,"$2,600",HOU,@ chw, 10-1,  0/1 
+ Luis Sardinas ^9,  0.00,"$2,600",BAL,v cle, 0-4,  0/3 
+ Blake Swihart ,  0.00,"$2,600",BOS,@ oak, 0-3,  0/1 
+ Charlie Culberson ,  0.00,"$2,500",ATL,v nym, 4-3,  0/1 SO 
+ Rene Rivera ^9,  0.00,"$2,500",LAA,v sfo, 4-3,  0/3 SO 
+ Jordy Mercer ^8,  0.00,"$2,500",PIT,@ phi, 2-6,  0/3 3SO 
+ Tomas Nido ,  0.00,"$2,500",NYM,@ atl, 3-4,  0/1 
+ Craig Gentry ^1,  0.00,"$2,500",BAL,v cle, 0-4,  0/4 
+ Moises Sierra ^5,  0.00,"$2,500",WAS,@ lad, 0-4,  0/3 SO 
+ Cliff Pennington ,  0.00,"$2,400",CIN,@ stl, 3-4,  0/1 
+ Matt Reynolds ,  0.00,"$2,400",WAS,@ lad, 0-4,  0/1 SO 
+ Tomas Telis ,  0.00,"$2,300",MIA,@ mil, 5-6,  0/1 
+ Bryan Holaday ^8,  0.00,"$2,300",MIA,@ mil, 5-6,  0/4 
+ Phillip  Gosselin ,  0.00,"$2,200",CIN,@ stl, 3-4,  
+ Yadiel Rivera ,  0.00,"$2,200",MIA,@ mil, 5-6,  
+ Andrew Romine ,  0.00,"$2,200",SEA,@ tex, 9-7,  
+ J.B. Shuck ,  0.00,"$2,100",MIA,@ mil, 5-6,  0/1 
+ Brad Miller ^4,  0.00,N/A,TAM,v min, 10-1,  0/4 SO 
+ Johnny Field ,  0.00,N/A,TAM,v min, 10-1,  
+ Joe Mauer ^2,  0.00,N/A,MIN,@ tam, 1-10,  0/4 
+ Mitch Garver ^6,  0.00,N/A,MIN,@ tam, 1-10,  0/4 SO 
+ Carlos Gomez ^3,  0.00,N/A,TAM,v min, 10-1,  0/4 3SO 

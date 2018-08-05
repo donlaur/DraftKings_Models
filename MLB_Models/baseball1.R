@@ -21,9 +21,8 @@ library(DescTools)
 
 
 # Number of lineups we wish to generate
-# Note: Each additional lineup will take longer to
-#       generate than the last 
-num.lineups = 5
+# Note: Each additional lineup will take longer to generate than the last 
+num.lineups = 150
 
 # Maximum overlap of players among lineups
 num.overlap = 5
@@ -37,267 +36,152 @@ salary.cap = 50000
 ## ------------------------------------------------------------ ##
 
 
-# Path to write output file to on personal computer
-path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup.csv"
+path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_stacked.csv"
 
-# Path to read Draftkings player CSV file from
-path.draftkings = "C:/Users/Ming/Documents/Fantasy_Models/data/DRAFT_07282018.csv"
+path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_2018-04-27.csv"
+path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_2018-04-27.csv"
 
-# Path to read Rotogrinders player CSV files from
-path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_PITCHERS_07042018.csv"
-path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/data/ROTO_HITTERS_07042018.csv"
+path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_2018-04-27.csv"
 
-# Path to read comprehensive ESPN MLB player data from
-path.ESPN = "C:/Users/Ming/Documents/Fantasy_Models/MLB_data"
+## Cleans Rotogrinders CSV files
+
+## ------------------------------------------------------------ ##
+
+clean.rotogrinders = function(roto.path) {
+  df = read.csv(roto.path,
+                stringsAsFactors = F)
+  df = subset(df, select = c(Name,
+                             Salary,
+                             Team,
+                             Position,
+                             Opp,
+                             Points))
+  names(df) = c("Name",
+                "Salary",
+                "Team",
+                "Position",
+                "Opponent",
+                "Projection")
+  df$Salary = gsub(c("K"), "", df$Salary)
+  df$Salary = gsub(c("\\$"), "", df$Salary)
+  df$Salary = as.numeric(df$Salary) * 1000
+  df$Team = gsub("@", "", df$Team)
+  df$Team = gsub(" ", "", df$Team)
+  df$Opponent = gsub("@", "", df$Opponent)
+  df$Opponent = gsub(" ", "", df$Opponent)
+  df$Teams.Playing = paste(df$Team, df$Opponent, sep = "@")
+  df$Teams.Playing = gsub(" ", "", df$Teams.Playing)
+  return(df)
+}
+
+hitters.proj = clean.rotogrinders(path.hitters.proj)
+pitchers.proj = clean.rotogrinders(path.pitchers.proj)
 
 
-## Read Draftkings CSV file and modify columns to create a clean dataframe
-## This function is not currently used in the code, as the Rotogrinder's
-## CSV file provides the same information as the Draftkings CSV file,
-## with the inclusion of player score projections.
+## Cleans Rotoguru CSV files for backtesting
 
 ## ------------------------------------------------------------ ##
 
 
-read.draftkings = function(path.draftkings) {
-  # Read raw CSV file
-  players = read.csv(path.draftkings, stringsAsFactors = F)
+clean.rotoguru = function(path.roto, 
+                          hitters.proj, 
+                          pitchers.proj) {
+  df = read.csv(path.roto, 
+                stringsAsFactors = F)[1:5]
+  names(df) = c("Name",
+                "Projection",
+                "Salary",
+                "Team",
+                "Opponent")
+  df$Name = gsub("\\^", "", df$Name)
+  df$Name = gsub("[0-9]+", "", df$Name)
   
-  # Change column names
-  names(players) = c("Roster.Position", "NameID", "Name", 
-                     "ID", "Position",
-                     "Salary", "Teams.Playing",
-                     "Team", "Projection")
+  temp.pitchers = lapply(df$Name, function(x) {
+    unlist(strsplit(x, split = " "))
+  })
   
-  # Remove unnecessary columns
-  players = select(players, 
-                   subset = -c(Name, ID, Roster.Position))
+  temp.pitchers = lapply(temp.pitchers, function(x) {
+    x[x != ""]
+  })
   
-  teams.playing = unlist(lapply(players$Teams.Playing, 
-                                function(x) {
-                                  unlist(strsplit(x, split = " "))[[1]]
-                                }), 
-                         use.names = F)
-  teams.playing = lapply(teams.playing,
-                         function(x) {
-                           unlist(strsplit(x, split = "@"))
-                         })
+  df$Name = lapply(temp.pitchers, function(x) {
+    paste(x, collapse = " ")
+  })
   
-  own.team = players$Team
-  opponents = c()
-  for(i in 1:length(teams.playing)) {
-    opponents = append(opponents, 
-                       teams.playing[[i]][teams.playing[[i]] != own.team[i]])
-  }
-  players$Opponent = opponents
-  hitters = players[players$Position != "P",]
-  pitchers = players[players$Position == "P",]
+  df$Salary = gsub(",", "", df$Salary)
+  df$Salary = suppressWarnings(as.numeric(gsub("\\$", "", df$Salary))) 
+  df$Team = gsub(" ", "", df$Team)
+  df$Opponent = gsub("v ", "", df$Opponent)
+  df$Opponent = gsub("@ ", "", df$Opponent)
+  df$Opponent = toupper(df$Opponent)
+  df$Opponent = gsub(" ", "", df$Opponent)
+  df$Teams.Playing = paste(df$Team, df$Opponent, sep = "@")
+  df$Position = NA
+  split = which(df[,1] == "Hitters")
+  pitchers.df = df[1:(split-1),]
+  hitters.df = df[(split+1):nrow(df),]
   
-  return(list(hitters = hitters,
-              pitchers = pitchers))
-}
-
-## Read Rotogrinders CSV file and modify columns to create a clean dataframe
-
-## ------------------------------------------------------------ ##
-
-
-read.rotogrinders = function(path.roto.hitters, path.roto.pitchers) {
-  hitters = read.csv(path.roto.hitters,
-                     stringsAsFactors = F,
-                     header = F)
-  
-  pitchers = read.csv(path.roto.pitchers,
-                      stringsAsFactors = F,
-                      header = F)
-  
-  players = list(hitters = hitters,
-                 pitchers = pitchers)
-  
-  for(i in 1:length(players)) {
-    colnames(players[[i]]) = c("Name", 
-                               "Salary",
-                               "Team",
-                               "Position",
-                               "Opponent",
-                               "None",
-                               "Percentage",
-                               "Projection")
-    players[[i]] = select(players[[i]],
-                          subset = -c(None, Percentage))
-    players[[i]]$Teams.Playing = apply(players[[i]][,c("Team", "Opponent")], 
-                                       1, 
-                                       paste, 
-                                       collapse = "@")
-  }
-  return(players)
-}
-
-players = read.rotogrinders(path.roto.hitters, 
-                            path.roto.pitchers)
-
-hitters = players[["hitters"]]
-pitchers = players[["pitchers"]]
-
-
-## Read ESPN CSV file and create two lists: one for hitters' dataframes, 
-## and one for pitchers' dataframes, where each dataframe 
-## contains a Draftkings Fantasy Points column calculated 
-## from their game-by-game ESPN stats
-
-## ------------------------------------------------------------ ##
-
-
-convert_result = function(result){
-  return(ifelse(grepl("W", result), 1, 0))
-}
-
-shutout = function(runs){
-  return(ifelse(runs == 0, 1, 0))
-}
-
-complete_game = function(innings){
-  return(ifelse(innings == 9, 1, 0))
-}
-
-nohitter = function(hits){
-  return(ifelse(hits == 0, 1, 0))
-}
-
-setwd(path.ESPN)
-pitcher.list = list()
-hitter.list = list()
-
-for(file in list.files()) {
-  # Read the csv file
-  df = read.csv(file, stringsAsFactors = F,
-                check.names = F)
-  
-  # Get rid of games where the player didn't play
-  df = df[complete.cases(df), ]
-  
-  tryCatch ({
-    # Determine whether the player is a pitcher or hitter
-    if ("IP" %in% colnames(df)) {
-      # Make result (win/loss) column into factor
-      df$RESULT = sapply(df$RESULT, convert_result)
-      df$Dec. = sapply(df$Dec., convert_result)
-      df$Shutout = sapply(df$R, shutout)
-      df$Complete.Game = sapply(df$IP, complete_game)
-      df$No.Hitter = sapply(df$H, nohitter)
-      
-      df$Points = 2.25 * df[,"IP"] + 2 * df[,"SO"] + 
-        4 * df[,"Dec."] - 2 * df[,"ER"] - 
-        0.6 * (df[,"H"] + df[,"BB"]) + 2.5 * df[,"Complete.Game"] + 
-        2.5 * df[,"Complete.Game"] * df[,"Shutout"] + 
-        5 * df[,"Complete.Game"] * df[,"No.Hitter"]
-      
-      pitcher.list = list.append(pitcher.list, file = df)
-      names(pitcher.list)[which(names(pitcher.list) == "file")] = file
-    }
-    else {
-      df$Points = 3 * df[,"H"] + 5 * df[,"2B"] +
-        8 * df[,"3B"] + 10 * df[,"HR"] +
-        2 * df[,"RBI"] + 2 * df[,"R"] +
-        2 * df[,"BB"] + 5 * df[,"SB"]
-      hitter.list = list.append(hitter.list, file = df)
-      names(hitter.list)[which(names(hitter.list) == "file")] = file
-    }
-  }, error = function(e) {})
-}
-
-
-## Merge ESPN and Rotogrinders CSV files, including a column for
-## player variance
-
-## ------------------------------------------------------------ ##
-
-
-fetch.files = function(espn.list,
-                       player.profile) {
-  name = unlist(strsplit(player.profile$Name, split = " "))
-  index = 0
-  for(df in names(espn.list)) {
-    if(all(sapply(name, function(x) {
-      grepl(x, df, ignore.case = T) 
-    }))) {
-      index = which(names(espn.list) == df)
-    }
-  }
-  if(index == 0) {
-    name = paste(name, collapse = " ")
-    for(df in names(espn.list)) {
-      csv.file = gsub(".csv", "", df)
-      csv.file = gsub("\\.-", "\\.", csv.file)
-      csv.file = gsub("-", "\\.", csv.file)
-      csv.file = unlist(strsplit(csv.file, split = "\\."))
-      if(all(sapply(csv.file, function(x) {
-        grepl(x, name, ignore.case = T) 
-      }))) {
-        index = which(names(espn.list) == df)
+  for(i in 1:nrow(pitchers.df)) {
+    name = unlist(strsplit(unlist(pitchers.df[i,1]), split = " "))
+    row = which(grepl(name[1], pitchers.proj[,1]) & grepl(name[2], pitchers.proj[,1]))
+    if(length(row) == 0) {
+      name = unlist(pitchers.df[i,1])
+      for(j in 1:nrow(pitchers.proj)) {
+        pitcher.name = unlist(strsplit(pitchers.proj[j,1], split = " "))
+        if(all(sapply(pitcher.name, function(x) {
+          grepl(x, name, ignore.case = T) 
+        }))) {
+          row = j
+        }
       }
     }
-  }
-  tryCatch ({
-    player.df = espn.list[[index]]
-    return(player.df)
-  }, error = function(e) {})
-  return(NA)
-}
-
-get.sd = function(espn.list, roto.file) {
-  roto.file$Sigma = NA
-  
-  for(i in 1:nrow(roto.file)) {
     tryCatch ({
-      df = fetch.files(espn.list, roto.file[i,])
-      roto.file[i,]$Sigma = sd(df$Points)
+      pitchers.df[i,"Salary"] = pitchers.proj[row, "Salary"]
+      pitchers.df[i,"Position"] = pitchers.proj[row, "Position"]
     }, error = function(e) {})
   }
   
-  return(roto.file)
+  for(i in 1:nrow(hitters.df)) {
+    name = unlist(strsplit(unlist(hitters.df[i,1]), split = " "))
+    row = which(grepl(name[1], hitters.proj[,1]) & grepl(name[2], hitters.proj[,1]))
+    if(length(row) == 0) {
+      name = unlist(hitters.df[i,1])
+      for(j in 1:nrow(hitters.proj)) {
+        hitter.name = unlist(strsplit(hitters.proj[j,1], split = " "))
+        if(all(sapply(hitter.name, function(x) {
+          grepl(x, name, ignore.case = T) 
+        }))) {
+          row = j
+        }
+      }
+    }
+    tryCatch ({
+      hitters.df[i,"Salary"] = hitters.proj[row, "Salary"]
+      hitters.df[i,"Position"] = hitters.proj[row, "Position"]
+      }, error = function(e) {})
+  }
+  pitchers.df = na.omit(pitchers.df)
+  hitters.df = na.omit(hitters.df)
+  pitchers.df$Projection = as.numeric(gsub(" ", "", pitchers.df$Projection))
+  hitters.df$Projection = as.numeric(gsub(" ", "", hitters.df$Projection))
+  return(list(pitchers = pitchers.df, 
+              hitters = hitters.df))
 }
 
-hitters = get.sd(hitter.list, hitters)
-pitchers = get.sd(pitcher.list, pitchers)
+hitters.actual = clean.rotoguru(path.players.actual, hitters.proj, pitchers.proj)[[2]]
+pitchers.actual = clean.rotoguru(path.players.actual, hitters.proj, pitchers.proj)[[1]]
 
 
-## Create covariance matrix for hitters
+## Use actual scores or projected scores?
 
 ## ------------------------------------------------------------ ##
 
 
-get.cov = function(espn.list, 
-                   roto.file) {
-  width = nrow(roto.file)
-  covariances = matrix(rep(0, width^2), nrow = width)
-  
-  for(i in 1:width) {
-    for(j in 1:width) {
-      if(i == j | roto.file[i,]$Team != roto.file[j,]$Team) {
-        covariances[i, j] = 0
-      }
-      else {
-        player.1 = fetch.files(espn.list, roto.file[i,])
-        player.2 = fetch.files(espn.list, roto.file[j,])
-        tryCatch ({
-          player.1 = player.1[,c("DATE","Points")]
-          player.2 = player.2[,c("DATE","Points")]
-          merged.players = merge(player.1,
-                                 player.2,
-                                 by = "DATE")
-          covariances[i, j] = cov(merged.players$Points.x,
-                                  merged.players$Points.y)
-        }, error = function(e) {})
-      }
-    }
-  }
-  
-  return(covariances)
-}
+hitters = hitters.proj
+pitchers = pitchers.proj
 
 
-## Create one lineup using integer linear programming
+## Create one stacked lineup using integer linear programming
 
 ## ------------------------------------------------------------ ##
 
@@ -308,12 +192,11 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                           shortstops, outfielders,
                           catchers, num.teams, hitters.teams,
                           num.games, hitters.games, pitchers.games,
-                          salary.cap, players.sd, hitters.covariance, 
-                          pitchers.opponents) {
-  w = function(i, j) {
-    vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
-  }
-  
+                          salary.cap, pitchers.opponents) {
+  # w = function(i, j) {
+  #   vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
+  # }
+  # 
   m = MILPModel() %>%
     # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
     add_variable(hitters.lineup[i],
@@ -384,6 +267,102 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     m = add_constraint(m, sum_expr(5 * pitchers.lineup[i]) +
                          sum_expr(colwise(pitchers.opponents[i, j]) * hitters.lineup[j], j = 1:num.hitters) <= 5)
   }
+  
+  # Overlap constraint
+  for(i in 1:nrow(lineups)) {
+    m = add_constraint(m, sum_expr(colwise(lineups[i,j]) * hitters.lineup[j], j = 1:num.hitters) +
+                         sum_expr(colwise(lineups[i, num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) <= num.overlap)
+  }
+  
+  m = set_objective(m,
+                    sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
+                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
+                    sense = "max")
+  
+  result = solve_model(m, with_ROI(solver = "glpk"))
+  print(result)
+  hitters.df = get_solution(result, hitters.lineup[i])
+  pitchers.df = get_solution(result, pitchers.lineup[i])
+  return(append(hitters.df[, "value"], pitchers.df[, "value"]))
+}
+
+
+
+## Create a nonstacked lineup
+
+##---------------------------------------
+
+
+nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
+                             num.hitters, num.pitchers, first.basemen,
+                             second.basemen, third.basemen,
+                             shortstops, outfielders,
+                             catchers, num.teams, hitters.teams,
+                             num.games, hitters.games, pitchers.games,
+                             salary.cap, pitchers.opponents) {
+  # w = function(i, j) {
+  #   vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
+  # }
+  # 
+  m = MILPModel() %>%
+    # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
+    add_variable(hitters.lineup[i],
+                 i = 1:num.hitters,
+                 type = "binary") %>%
+    
+    # Vector consisting of dummy variables indicating whether each goalie is chosen
+    add_variable(pitchers.lineup[i],
+                 i = 1:num.pitchers,
+                 type = "binary") %>%
+    
+    # Vector consisting of dummy variables indicating whether a team is represented in the hitter lineup
+    add_variable(used.team[i],
+                 i = 1:num.teams,
+                 type = "binary") %>%
+    
+    # Eight hitters constraint
+    add_constraint(sum_expr(hitters.lineup[i], i = 1:num.hitters) == 8) %>%
+    
+    # Two pitchers constraint
+    add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
+    
+    # One of each position besides outfielders
+    add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(third.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(shortstops[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(catchers[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(outfielders[i]) * hitters.lineup[i], i = 1:num.hitters) == 3) %>%
+    
+    # Players who play two positions cannot be chosen twice
+    add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i] +
+                              colwise(second.basemen[i]) * hitters.lineup[i] +
+                              colwise(third.basemen[i]) * hitters.lineup[i] +
+                              colwise(shortstops[i]) * hitters.lineup[i] +
+                              colwise(catchers[i]) * hitters.lineup[i] +
+                              colwise(outfielders[i]) * hitters.lineup[i], 
+                            i = 1:num.hitters) <= num.hitters) %>%
+    
+    # Budget constraint
+    add_constraint(sum_expr(colwise(hitters[i, "Salary"]) * hitters.lineup[i], i = 1:num.hitters) +
+                     sum_expr(colwise(pitchers[i, "Salary"]) * pitchers.lineup[i], i = 1:num.pitchers) <= salary.cap)
+  
+  # No more than five hitters from the same team
+  for(i in 1:num.teams) {
+    m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
+    m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
+  }
+  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
+  
+  # Players must come from at least two different games
+  m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
+  
+  for(i in 1:num.games) {
+    m = add_constraint(m, used.game[i] <= 
+                         sum_expr(colwise(hitters.games[t,i]) * hitters.lineup[t], t = 1:num.hitters) +
+                         sum_expr(colwise(pitchers.games[t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
+  }
+  m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
   
   # Overlap constraint
   for(i in 1:nrow(lineups)) {
@@ -512,10 +491,10 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   print("Generating lineups (this may take a while)...")
   
   # Mock variance vector
-  players.sd = append(hitters$Sigma, pitchers$Sigma)
+  # players.sd = append(hitters$Sigma, pitchers$Sigma)
   
   # Covariance matrix
-  hitters.covariance = get.cov(hitter.list, hitters)
+  # hitters.covariance = get.cov(hitter.list, hitters)
   
   # Pitchers' opponents
   opponents = pitchers[,"Opponent"]
@@ -541,8 +520,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
-                        salary.cap, players.sd, hitters.covariance, 
-                        pitchers.opponents)
+                        salary.cap, pitchers.opponents)
   lineups = matrix(lineups, nrow = 1)
   
   for(i in 1:(num.lineups - 1)) {
@@ -552,8 +530,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                          hitters.list[[4]], hitters.list[[5]],
                          hitters.list[[6]], num.teams, hitters.teams,
                          num.games, hitters.games, pitchers.games,
-                         salary.cap, players.sd, hitters.covariance, 
-                         pitchers.opponents)
+                         salary.cap, pitchers.opponents)
     lineups = rbind(lineups, lineup)
   }
   
@@ -579,6 +556,12 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
     
     names = append(c(hitters[hitters.indices, "Name"]),
                    c(pitchers[pitchers.indices, "Name"]))
+    
+    points = sum(hitters[hitters.indices, "Projection"]) +
+      sum(pitchers[pitchers.indices, "Projection"])
+    
+    names = append(names, toString(points))
+    
     write.table(matrix(names, nrow = 1),
                 path.output,
                 sep = ",",
@@ -590,10 +573,95 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
 }
 
 
-## Create lineups and export to CSV
+## Takes the lineups matrix and returns a vector of scores, where
+## each score is the score of the respective lineup
 
 ## ------------------------------------------------------------ ##
 
 
+get.scores = function(lineups, hitters, pitchers, 
+                      hitters.actual, pitchers.actual) {
+  # Points vector
+  points = rep(0, nrow(lineups))
+  
+  for(i in 1:nrow(lineups)) {
+    lineup = lineups[i,]
+    chosen.hitters = lineup[1:nrow(hitters)]
+    chosen.pitchers = lineup[(nrow(hitters) + 1):length(lineup)]
+    
+    hitters.indices = which(chosen.hitters == 1)
+    pitchers.indices = which(chosen.pitchers == 1)
+    
+    for(j in hitters.indices) {
+      name = unlist(strsplit(hitters[j,1], split = " "))
+      row = which(grepl(name[1], hitters.actual[,1]) & grepl(name[2], hitters.actual[,1]))
+      if(length(row) == 0) {
+        name = hitters[j,1]
+        for(k in 1:nrow(hitters.actual)) {
+          hitter.name = unlist(strsplit(unlist(hitters.actual[k,1]), split = " "))
+          if(all(sapply(hitter.name, function(x) {
+            grepl(x, name, ignore.case = T) 
+          }))) {
+            row = k
+          }
+        }
+      }
+      tryCatch ({
+        points[i] = points[i] + hitters.actual[row, "Projection"]
+      }, error = function(e) {print(e)})
+    }
+    
+    for(j in pitchers.indices) {
+      name = unlist(strsplit(pitchers[j,1], split = " "))
+      row = which(grepl(name[1], pitchers.actual[,1]) & grepl(name[2], pitchers.actual[,1]))
+      if(length(row) == 0) {
+        name = pitchers[j,1]
+        for(k in 1:nrow(pitchers.actual)) {
+          pitcher.name = unlist(strsplit(unlist(pitchers.actual[k,1]), split = " "))
+          if(all(sapply(pitcher.name, function(x) {
+            grepl(x, name, ignore.case = T) 
+          }))) {
+            row = k
+          }
+        }
+      }
+      tryCatch ({
+        points[i] = points[i] + pitchers.actual[row, "Projection"]
+      }, error = function(e) {print(e)})
+    }
+  }
+  
+  return(points)
+}
+
+
+## Create lineups and get their actual scores
+
+## ------------------------------------------------------------ ##
+
+
+get.optimum = function(df, hitters.actual, pitchers.actual) {
+  lineup = df[1,]
+  chosen.hitters = lineup[1:nrow(hitters.actual)]
+  chosen.pitchers = lineup[(nrow(hitters.actual) + 1):length(lineup)]
+  
+  hitters.indices = which(chosen.hitters == 1)
+  pitchers.indices = which(chosen.pitchers == 1)
+  
+  points = sum(hitters.actual[hitters.indices, "Projection"]) +
+    sum(pitchers.actual[pitchers.indices, "Projection"])
+  
+  return(points)
+}
+
 df = create_lineups(num.lineups, num.overlap, stacked.lineup, salary.cap, hitters, pitchers)
-lineups.to.csv(df, hitters, pitchers, path.output)
+scores = get.scores(df, hitters, pitchers, hitters.actual, pitchers.actual) 
+max.score = max(scores)
+
+
+## Get actual maximum score
+
+## ------------------------------------------------------------ ##
+
+optimum = create_lineups(1, num.overlap, nonstacked.lineup, salary.cap, hitters.actual, pitchers.actual)
+score = get.optimum(optimum, hitters.actual, pitchers.actual) 
