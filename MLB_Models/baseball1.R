@@ -498,21 +498,24 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         salary.cap, pitchers.opponents)
   lineups = matrix(lineups, nrow = 1)
   
-  for(i in 1:(num.lineups - 1)) {
-    lineup = formulation(hitters, pitchers, lineups, num.overlap,
-                         num.hitters, num.pitchers, hitters.list[[1]],
-                         hitters.list[[2]], hitters.list[[3]],
-                         hitters.list[[4]], hitters.list[[5]],
-                         hitters.list[[6]], num.teams, hitters.teams,
-                         num.games, hitters.games, pitchers.games,
-                         salary.cap, pitchers.opponents)
-    lineups = rbind(lineups, lineup)
+  if(num.lineups > 1) {
+    for(i in 1:(num.lineups - 1)) {
+      lineup = formulation(hitters, pitchers, lineups, num.overlap,
+                           num.hitters, num.pitchers, hitters.list[[1]],
+                           hitters.list[[2]], hitters.list[[3]],
+                           hitters.list[[4]], hitters.list[[5]],
+                           hitters.list[[6]], num.teams, hitters.teams,
+                           num.games, hitters.games, pitchers.games,
+                           salary.cap, pitchers.opponents)
+      lineups = rbind(lineups, lineup)
+    }
   }
-  
+    
   print("Lineups successfully generated!")
   
   return(lineups)
 }
+
 
 ## Takes the lineups matrix and writes it to a CSV file, where each
 ## row is a lineup
@@ -628,7 +631,7 @@ get.scores = function(lineups, hitters, pitchers,
 
 
 get.optimum = function(df, hitters.actual, pitchers.actual) {
-  lineup = df[1,]
+  lineup = df
   chosen.hitters = lineup[1:nrow(hitters.actual)]
   chosen.pitchers = lineup[(nrow(hitters.actual) + 1):length(lineup)]
   
