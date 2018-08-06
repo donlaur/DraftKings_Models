@@ -262,6 +262,7 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                     sense = "max")
   
   result = solve_model(m, with_ROI(solver = "glpk"))
+  print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
@@ -631,7 +632,7 @@ get.scores = function(lineups, hitters, pitchers,
 }
 
 
-## Create lineups and get their actual scores
+## Returns the optimal lineup performance 
 
 ## ------------------------------------------------------------ ##
 
@@ -651,27 +652,10 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
 }
 
 
-## Macro baseball variables: change these
+## Backtesting on historical Draftkings data
 
 ## ------------------------------------------------------------ ##
 
-
-# Maximum overlap of players among lineups
-num.overlap = 3:7
-
-# Salary cap (dollars)
-salary.cap = 50000
-
-
-# path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_custom.csv"
-num.lineups = 150
-year = 2018
-month = 6
-days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
-
-path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
-path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_YEAR-0MONTH-DAY.csv"
-path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_YEAR-0MONTH-DAY.csv"
 
 gsub.custom = function(str, year, month, day) {
   str = gsub("YEAR", year, str)
@@ -683,45 +667,65 @@ gsub.custom = function(str, year, month, day) {
   return(str)
 } 
 
-model.scorelist = list()
-max.scorelist = list()
-
-for(overlap in num.overlap) {
-  model.scores = c()
-  max.scores = c()
-  num.days = days[[toString(month)]]
-  for(day in 1:num.days) {
-    path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
-    path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
-    path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
-    
-    tryCatch({
-      hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
-      pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
+backtest = function(overlaps, salary.cap,
+                    num.lineups, path.hitters.proj,
+                    path.pitchers.proj, path.players.actual,
+                    year, month, days) {
+  for(overlap in overlaps) {
+    num.days = days[[toString(month)]]
+    for(day in 1:num.days) {
+      path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
+      path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
+      path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
       
-      hitters.actual = clean.rotoguru(path.players.actual.temp, 
-                                      hitters.proj, 
-                                      pitchers.proj)[[2]]
-      pitchers.actual = clean.rotoguru(path.players.actual.temp, 
-                                       hitters.proj, 
-                                       pitchers.proj)[[1]]
-      
-      df = create_lineups(num.lineups, overlap, 
-                          stacked.lineup, salary.cap, 
-                          hitters.proj, pitchers.proj)
-      scores = get.scores(df, hitters.proj, pitchers.proj, 
-                          hitters.actual, pitchers.actual) 
-      model.scores = append(model.scores, max(scores))
-      
-      optimum = create_lineups(1, overlap, nonstacked.lineup, 
-                               salary.cap, hitters.actual, pitchers.actual)
-      score = get.optimum(optimum, hitters.actual, pitchers.actual) 
-      max.scores = append(max.scores, score)
-    }, error = function(e) {print(e)})
+      tryCatch({
+        hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
+        pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
+        
+        hitters.actual = clean.rotoguru(path.players.actual.temp, 
+                                        hitters.proj, 
+                                        pitchers.proj)[[2]]
+        pitchers.actual = clean.rotoguru(path.players.actual.temp, 
+                                         hitters.proj, 
+                                         pitchers.proj)[[1]]
+        
+        df = create_lineups(num.lineups, overlap, 
+                            stacked.lineup, salary.cap, 
+                            hitters.proj, pitchers.proj)
+        scores = get.scores(df, hitters.proj, pitchers.proj, 
+                            hitters.actual, pitchers.actual) 
+        # model.scores = append(model.scores, max(scores))
+        file_name = paste("model", toString(overlap), sep = "")
+        write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+        
+        optimum = create_lineups(1, overlap, nonstacked.lineup, 
+                                 salary.cap, hitters.actual, pitchers.actual)
+        score = get.optimum(optimum, hitters.actual, pitchers.actual) 
+        # max.scores = append(max.scores, score)
+        
+        file_name = paste("max", toString(overlap), sep = "")
+        write(score, file = paste(file_name, ".txt", sep = ""), append = T)
+      }, error = function(e) {print(e)})
+    }
+    model.scorelist = list.append(model.scorelist, model.scores)
+    max.scorelist = list.append(max.scorelist, max.scores)
   }
-  model.scorelist = list.append(model.scorelist, model.scores)
-  max.scorelist = list.append(max.scorelist, max.scores)
 }
 
+
+overlaps = 3:7
+salary.cap = 50000
+num.lineups = 150
+year = 2018
+month = 6
+days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
+path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
+path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_YEAR-0MONTH-DAY.csv"
+path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_YEAR-0MONTH-DAY.csv"
+
+backtest(overlaps, salary.cap,
+         num.lineups, path.hitters.proj,
+         path.pitchers.proj, path.players.actual,
+         year, month, days)
 
 stopCluster(cl)
