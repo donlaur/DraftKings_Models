@@ -104,6 +104,12 @@ clean.rotoguru = function(path.roto,
         }
       }
     }
+    if(length(row) == 0) {
+      name = unlist(strsplit(unlist(pitchers.df[i,1]), split = " "))
+      team = substring(pitchers.df[i,"Team"], 1, 2)
+      row = which(grepl(team, pitchers.proj[,"Team"]) & grepl(name[2], pitchers.proj[,1]) &
+                    grepl(substring(name[1], 1, 1), pitchers.proj[,1]))
+    }
     tryCatch ({
       pitchers.df[i,"Salary"] = pitchers.proj[row, "Salary"]
       pitchers.df[i,"Position"] = pitchers.proj[row, "Position"]
@@ -123,6 +129,12 @@ clean.rotoguru = function(path.roto,
           row = j
         }
       }
+    }
+    if(length(row) == 0) {
+      name = unlist(strsplit(unlist(hitters.df[i,1]), split = " "))
+      team = substring(hitters.df[i,"Team"], 1, 2)
+      row = which(grepl(team, hitters.proj[,"Team"]) & grepl(name[2], hitters.proj[,1]) &
+                    grepl(substring(name[1], 1, 1), hitters.proj[,1]))
     }
     tryCatch ({
       hitters.df[i,"Salary"] = hitters.proj[row, "Salary"]
@@ -569,9 +581,15 @@ get.scores = function(lineups, hitters, pitchers,
           }
         }
       }
+      if(length(row) == 0) {
+        name = unlist(strsplit(hitters[j,1], split = " "))
+        team = substring(hitters[j,"Team"], 1, 2)
+        row = which(grepl(team, hitters.actual[,"Team"]) & grepl(name[length(name)], hitters.actual[,1]) &
+                      grepl(substring(name[length(name)-1], 1, 1), hitters.actual[,1]))
+      }
       tryCatch ({
         points[i] = points[i] + hitters.actual[row, "Projection"]
-      }, error = function(e) {print(e)})
+      }, error = function(e) {print(name)})
     }
     
     for(j in pitchers.indices) {
@@ -588,9 +606,15 @@ get.scores = function(lineups, hitters, pitchers,
           }
         }
       }
+      if(length(row) == 0) {
+        name = unlist(strsplit(pitchers[j,1], split = " "))
+        team = substring(pitchers[j,"Team"], 1, 2)
+        row = which(grepl(team, pitchers.actual[,"Team"]) & grepl(name[length(name)], pitchers.actual[,1]) &
+                      grepl(substring(name[length(name)-1], 1, 1), pitchers.actual[,1]))
+      }
       tryCatch ({
         points[i] = points[i] + pitchers.actual[row, "Projection"]
-      }, error = function(e) {print(e)})
+      }, error = function(e) {print(name)})
     }
   }
   
@@ -623,24 +647,15 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
 ## ------------------------------------------------------------ ##
 
 
-# Number of lineups we wish to generate
-# Note: Each additional lineup will take longer to generate than the last 
-num.lineups = 100
-
 # Maximum overlap of players among lineups
-num.overlap = 3:7
+num.overlap = 4
 
 # Salary cap (dollars)
 salary.cap = 50000
 
 
-## Path to CSV files: change these
-
-## ------------------------------------------------------------ ##
-
-
 # path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_custom.csv"
-
+num.lineups = 20
 year = 2018
 months = 6:7
 days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
@@ -652,7 +667,10 @@ path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/
 gsub.custom = function(str, year, month, day) {
   str = gsub("YEAR", year, str)
   str = gsub("MONTH", month, str)
-  str = gsub("DAY", day, str)
+  str = ifelse(day < 10, 
+               gsub("DAY", paste("0", toString(day), sep = ""), str),
+               gsub("DAY", day, str))
+  
   return(str)
 } 
 
@@ -661,7 +679,7 @@ max.scores = c()
 
 for(month in months) {
   num.days = days[[toString(month)]]
-  for(day in num.days) {
+  for(day in 1:num.days) {
     path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
     path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
     path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
@@ -679,13 +697,13 @@ for(month in months) {
     df = create_lineups(num.lineups, num.overlap, 
                         stacked.lineup, salary.cap, 
                         hitters.proj, pitchers.proj)
-    scores = get.scores(df, hitters, pitchers, 
+    scores = get.scores(df, hitters.proj, pitchers.proj, 
                         hitters.actual, pitchers.actual) 
     model.scores = append(model.scores, max(scores))
     
     optimum = create_lineups(1, num.overlap, nonstacked.lineup, 
                              salary.cap, hitters.actual, pitchers.actual)
-    score = get.optimum(optimum[1,], hitters.actual, pitchers.actual) 
+    score = get.optimum(optimum, hitters.actual, pitchers.actual) 
     max.scores = append(max.scores, score)
   }
 }
