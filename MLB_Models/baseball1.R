@@ -13,6 +13,16 @@ library(ROI.plugin.glpk)
 library(dplyr)
 library(purrr)
 library(DescTools)
+library(parallel)
+library(doParallel)
+
+
+## Allow parallel processing
+
+## ------------------------------------------------------------ ##
+num.cores = detectCores()
+cl <- makePSOCKcluster(num.cores)
+registerDoParallel(cl)
 
 
 ## Cleans Rotogrinders CSV files
@@ -106,8 +116,9 @@ clean.rotoguru = function(path.roto,
     }
     if(length(row) == 0) {
       name = unlist(strsplit(unlist(pitchers.df[i,1]), split = " "))
-      team = substring(pitchers.df[i,"Team"], 1, 2)
-      row = which(grepl(team, pitchers.proj[,"Team"]) & grepl(name[2], pitchers.proj[,1]) &
+      team = substring(pitchers.df[i,"Team"], 1, 1)
+      row = which(grepl(team, pitchers.proj[,"Team"]) & 
+                    grepl(name[2], pitchers.proj[,1]) &
                     grepl(substring(name[1], 1, 1), pitchers.proj[,1]))
     }
     tryCatch ({
@@ -132,8 +143,9 @@ clean.rotoguru = function(path.roto,
     }
     if(length(row) == 0) {
       name = unlist(strsplit(unlist(hitters.df[i,1]), split = " "))
-      team = substring(hitters.df[i,"Team"], 1, 2)
-      row = which(grepl(team, hitters.proj[,"Team"]) & grepl(name[2], hitters.proj[,1]) &
+      team = substring(hitters.df[i,"Team"], 1, 1)
+      row = which(grepl(team, hitters.proj[,"Team"]) & 
+                    grepl(name[2], hitters.proj[,1]) &
                     grepl(substring(name[1], 1, 1), hitters.proj[,1]))
     }
     tryCatch ({
@@ -219,7 +231,8 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
     m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
     m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
   }
-  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) == 2)
+  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
+  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) <= 2)
   
   # Players must come from at least two different games
   m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
@@ -249,7 +262,6 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                     sense = "max")
   
   result = solve_model(m, with_ROI(solver = "glpk"))
-  print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
@@ -345,7 +357,6 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                     sense = "max")
   
   result = solve_model(m, with_ROI(solver = "glpk"))
-  print(result)
   hitters.df = get_solution(result, hitters.lineup[i])
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
@@ -462,9 +473,6 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
     rbind(x, y)
   }, games.distribution)
   
-  print("Initializing ROI.plugin.glpk...")
-  print("Generating lineups (this may take a while)...")
-  
   # Mock variance vector
   # players.sd = append(hitters$Sigma, pitchers$Sigma)
   
@@ -510,8 +518,6 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
       lineups = rbind(lineups, lineup)
     }
   }
-    
-  print("Lineups successfully generated!")
   
   return(lineups)
 }
@@ -586,7 +592,7 @@ get.scores = function(lineups, hitters, pitchers,
       }
       if(length(row) == 0) {
         name = unlist(strsplit(hitters[j,1], split = " "))
-        team = substring(hitters[j,"Team"], 1, 2)
+        team = substring(hitters[j,"Team"], 1, 1)
         row = which(grepl(team, hitters.actual[,"Team"]) & grepl(name[length(name)], hitters.actual[,1]) &
                       grepl(substring(name[length(name)-1], 1, 1), hitters.actual[,1]))
       }
@@ -611,7 +617,7 @@ get.scores = function(lineups, hitters, pitchers,
       }
       if(length(row) == 0) {
         name = unlist(strsplit(pitchers[j,1], split = " "))
-        team = substring(pitchers[j,"Team"], 1, 2)
+        team = substring(pitchers[j,"Team"], 1, 1)
         row = which(grepl(team, pitchers.actual[,"Team"]) & grepl(name[length(name)], pitchers.actual[,1]) &
                       grepl(substring(name[length(name)-1], 1, 1), pitchers.actual[,1]))
       }
@@ -651,16 +657,16 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
 
 
 # Maximum overlap of players among lineups
-num.overlap = 4
+num.overlap = 3:7
 
 # Salary cap (dollars)
 salary.cap = 50000
 
 
 # path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_lineup_custom.csv"
-num.lineups = 20
+num.lineups = 150
 year = 2018
-months = 6:7
+month = 6
 days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
 
 path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
@@ -677,37 +683,45 @@ gsub.custom = function(str, year, month, day) {
   return(str)
 } 
 
-model.scores = c()
-max.scores = c()
+model.scorelist = list()
+max.scorelist = list()
 
-for(month in months) {
+for(overlap in num.overlap) {
+  model.scores = c()
+  max.scores = c()
   num.days = days[[toString(month)]]
   for(day in 1:num.days) {
     path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
     path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
     path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
     
-    hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
-    pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
-    
-    hitters.actual = clean.rotoguru(path.players.actual.temp, 
-                                    hitters.proj, 
-                                    pitchers.proj)[[2]]
-    pitchers.actual = clean.rotoguru(path.players.actual.temp, 
-                                     hitters.proj, 
-                                     pitchers.proj)[[1]]
-    
-    df = create_lineups(num.lineups, num.overlap, 
-                        stacked.lineup, salary.cap, 
-                        hitters.proj, pitchers.proj)
-    scores = get.scores(df, hitters.proj, pitchers.proj, 
-                        hitters.actual, pitchers.actual) 
-    model.scores = append(model.scores, max(scores))
-    
-    optimum = create_lineups(1, num.overlap, nonstacked.lineup, 
-                             salary.cap, hitters.actual, pitchers.actual)
-    score = get.optimum(optimum, hitters.actual, pitchers.actual) 
-    max.scores = append(max.scores, score)
+    tryCatch({
+      hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
+      pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
+      
+      hitters.actual = clean.rotoguru(path.players.actual.temp, 
+                                      hitters.proj, 
+                                      pitchers.proj)[[2]]
+      pitchers.actual = clean.rotoguru(path.players.actual.temp, 
+                                       hitters.proj, 
+                                       pitchers.proj)[[1]]
+      
+      df = create_lineups(num.lineups, overlap, 
+                          stacked.lineup, salary.cap, 
+                          hitters.proj, pitchers.proj)
+      scores = get.scores(df, hitters.proj, pitchers.proj, 
+                          hitters.actual, pitchers.actual) 
+      model.scores = append(model.scores, max(scores))
+      
+      optimum = create_lineups(1, overlap, nonstacked.lineup, 
+                               salary.cap, hitters.actual, pitchers.actual)
+      score = get.optimum(optimum, hitters.actual, pitchers.actual) 
+      max.scores = append(max.scores, score)
+    }, error = function(e) {print(e)})
   }
+  model.scorelist = list.append(model.scorelist, model.scores)
+  max.scorelist = list.append(max.scorelist, max.scores)
 }
 
+
+stopCluster(cl)
