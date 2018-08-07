@@ -12,4 +12,30 @@ path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/
 path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
 
 
-## Outputs one combined Rotogrinders projection dataframe
+## Outputs Rotogrinders projection dataframe
+
+## ------------------------------------------------------------ ##
+
+
+roto.combine = function(path.roto.hitters, path.roto.pitchers) {
+  setwd(path.roto.hitters)
+  hitters.files = lapply(list.files(), clean.rotogrinders)
+  
+  setwd(path.roto.pitchers)
+  pitchers.files = lapply(list.files(), clean.rotogrinders)
+  
+  players.files = list.append(hitters.files, pitchers.files)
+  
+  roto.df = Reduce(function(x, y) {
+    rbind(x, y)
+  }, players.files)
+  
+  return(roto.df)
+}
+
+
+## Outputs Sabersim projection dataframe
+
+## ------------------------------------------------------------ ##
+
+
