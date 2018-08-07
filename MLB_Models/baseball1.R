@@ -15,16 +15,7 @@ library(purrr)
 library(DescTools)
 library(parallel)
 library(doParallel)
-
-
-## Allow parallel processing
-
-## ------------------------------------------------------------ ##
-
-
-num.cores = detectCores()
-cl <- makePSOCKcluster(num.cores)
-registerDoParallel(cl)
+library(caret)
 
 
 ## Cleans Rotogrinders CSV files
@@ -676,7 +667,7 @@ backtest = function(overlaps, salary.cap,
                     year, month, days) {
   for(overlap in overlaps) {
     num.days = days[[toString(month)]]
-    for(day in 1:num.days) {
+    for(day in 6:num.days) {
       path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
       path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
       path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
@@ -710,35 +701,7 @@ backtest = function(overlaps, salary.cap,
         write(score, file = paste(file_name, ".txt", sep = ""), append = T)
       }, error = function(e) {print(e)})
     }
-    model.scorelist = list.append(model.scorelist, model.scores)
-    max.scorelist = list.append(max.scorelist, max.scores)
+    # model.scorelist = list.append(model.scorelist, model.scores)
+    # max.scorelist = list.append(max.scorelist, max.scores)
   }
 }
-
-
-# Overlaps to test
-overlaps = 3:7
-
-# Salary cap
-salary.cap = 50000
-
-# Lineups to generate per entry
-num.lineups = 150
-
-# Dates to test
-year = 2018
-month = 6
-days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
-
-# Paths to required folders
-path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
-path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_YEAR-0MONTH-DAY.csv"
-path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_YEAR-0MONTH-DAY.csv"
-
-# Run backtesting (this will take hours and hours)
-backtest(overlaps, salary.cap,
-         num.lineups, path.hitters.proj,
-         path.pitchers.proj, path.players.actual,
-         year, month, days)
-
-stopCluster(cl)
