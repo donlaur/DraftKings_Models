@@ -2,7 +2,7 @@ source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 
 
 # Overlaps to test
-overlaps = 6:7
+overlaps = 7:8
 
 # Salary cap
 salary.cap = 50000

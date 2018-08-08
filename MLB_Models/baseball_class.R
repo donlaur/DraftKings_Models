@@ -667,7 +667,7 @@ backtest = function(overlaps, salary.cap,
                     year, month, days) {
   for(overlap in overlaps) {
     num.days = days[[toString(month)]]
-    for(day in 8:num.days) {
+    for(day in 1:num.days) {
       path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
       path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
       path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
