@@ -1,10 +1,12 @@
-library(ompr)
+## This file contains code which cleans Draftkings, Rotogrinders,
+## and ESPN CSV files. These functionalities are stored here because
+## they are currently not being used in the algorithm.
+##
+## ------------------------------------------------------------ ##
+
+
 library(magrittr)
-library(ROI)
-library(ompr.roi)
 library(rlist)
-library(ROI.plugin.symphony)
-library(ROI.plugin.glpk)
 library(dplyr)
 library(purrr)
 library(DescTools)
