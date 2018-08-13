@@ -2,7 +2,7 @@ source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 
 
 # Overlaps to test
-overlaps = 7:8
+overlaps = 5:6
 
 # Salary cap
 salary.cap = 50000
@@ -10,18 +10,22 @@ salary.cap = 50000
 # Lineups to generate per entry
 num.lineups = 150
 
-# Dates to test
-year = 2018
-month = 6
-days = list("4" = 30, "5" = 31, "6" = 30, "7" = 31, "8" = 4)
-
 # Paths to required folders
-path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_YEAR-0MONTH-DAY.csv"
-path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_YEAR-0MONTH-DAY.csv"
-path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_YEAR-0MONTH-DAY.csv"
+path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_DATE.csv"
+path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_DATE.csv"
+path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_DATE.csv"
 
 # Run backtesting (this will take hours and hours)
 backtest(overlaps, salary.cap,
          num.lineups, path.hitters.proj,
          path.pitchers.proj, path.players.actual,
-         year, month, days)
+         path.saber)
+
+
+## Performance plot
+
+setwd("C:/Users/Ming/Documents/Fantasy_Models/output")
+df = read.csv("backtest.csv")
+df.melt = melt(df, id = "Day")
+ggplot(data = df.melt, aes(x = Day, y = value, colour = variable)) + 
+  geom_line() + xlab("Day") + ylab("Draftkings Score")

@@ -266,3 +266,55 @@ get.cov = function(espn.list,
   
   return(covariances)
 }
+
+backtest.optimal = function(salary.cap,
+                            num.lineups, path.hitters.proj,
+                            path.pitchers.proj, path.players.actual,
+                            year, month, days) {
+  num.days = days[[toString(month)]]
+  optimum.teams = list()
+  optimum.points = list()
+  for(day in 14:(num.days-15)) {
+    path.hitters.proj.temp = gsub.custom(path.hitters.proj, year, month, day)
+    path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, year, month, day)
+    path.players.actual.temp = gsub.custom(path.players.actual, year, month, day)
+    
+    hitters.proj = clean.rotogrinders(path.hitters.proj.temp)
+    pitchers.proj = clean.rotogrinders(path.pitchers.proj.temp)
+    
+    hitters.actual = clean.rotoguru(path.players.actual.temp, 
+                                    hitters.proj, 
+                                    pitchers.proj)[[2]]
+    pitchers.actual = clean.rotoguru(path.players.actual.temp, 
+                                     hitters.proj, 
+                                     pitchers.proj)[[1]]
+    
+    optimum = create_lineups(15, 4, nonstacked.lineup, 
+                             salary.cap, hitters.actual, pitchers.actual)
+    print("Created!")
+    
+    num.teams = c()
+    num.points = c()
+    
+    for(j in 1:nrow(optimum)) {
+      lineup = optimum[j,]
+      chosen.hitters = lineup[1:nrow(hitters.actual)]
+      chosen.pitchers = lineup[(nrow(hitters.actual) + 1):length(lineup)]
+      
+      hitters.indices = which(chosen.hitters == 1)
+      pitchers.indices = which(chosen.pitchers == 1)
+      
+      teams = c(hitters.actual[hitters.indices, "Team"])
+      
+      num.teams = append(num.teams, length(unique(teams)))
+      
+      score = get.optimum(lineup, hitters.actual, pitchers.actual) 
+      
+      num.points = append(num.points, score)
+      
+    }
+    optimum.teams = list.append(optimum.teams, num.teams)
+    optimum.points = list.append(optimum.points, num.points)
+  }
+  return(list.append(optimum.teams, optimum.points))
+}
