@@ -32,6 +32,7 @@ path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projecti
 path.saber = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Saber_Sim"
 path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Swish_Analytics"
 path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
+output = "C:/Users/Ming/Documents/Fantasy_Models/output"
 
 
 ## Cleans Rotogrinders CSV files
@@ -742,8 +743,7 @@ backtest = function(overlaps, salary.cap,
                     num.lineups, path.hitters.proj,
                     path.pitchers.proj, path.players.actual,
                     path.saber) {
-  setwd(path.saber)
-  saber.files = list.files()[seq(200, 400, by = 20)]
+  saber.files = list.files(path.saber)[c(200, 220, 240, 280, 320, 340, 380)]
   dates = lapply(saber.files, function(x) {
     unlist(strsplit(gsub("[A-z\\.]", "", x), split = " "))[1]
   })
@@ -759,6 +759,9 @@ backtest = function(overlaps, salary.cap,
       hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
       pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
       
+      nrow(hitters.proj)
+      nrow(pitchers.proj)
+      
       hitters.actual = clean.rotoguru(path.players.actual.temp, 
                                       hitters.proj, 
                                       pitchers.proj)[[2]]
@@ -773,6 +776,7 @@ backtest = function(overlaps, salary.cap,
       scores = get.scores(df, hitters.proj, pitchers.proj, 
                           hitters.actual, pitchers.actual) 
       file_name = paste("modelb", toString(overlap), sep = "")
+      setwd(output)
       write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
     }
   }
