@@ -302,6 +302,8 @@ model.df$Salary = model.df$Salary/10000
 model.df$SalDiff = model.df$SalDiff/1000
 model.df$RankDiff = model.df$RankDiff/100
 
+train.df = model.df[model.df$Date < 90,]
+test.df = model.df[model.df$Date >= 90,]
 
 ## Examining the dataset
 
@@ -312,20 +314,32 @@ M = cor(model.df[,unlist(lapply(model.df, is.numeric))])
 corrplot(M, method = "circle")
 
 
+## Multiple imputation on testing and training data
+
+## ------------------------------------------------------------ ##
+
+
+temp.data.train = mice(train.df, method = "pmm")
+temp.data.test = mice(test.df, method = "pmm")
+train.df = mice::complete(temp.data.train)
+test.df = mice::complete(temp.data.test)
+
+
 ## Forward selection
 
 ## ------------------------------------------------------------ ##
 
 
-null = lm(Actual ~ 1, data = model.df)
-full = lm(Actual ~ ., data = model.df)
+null = lm(Actual ~ 1, data = train.df)
+full = lm(Actual ~ ., data = train.df)
 
-both.select = step(null, 
+both.select = step(full, 
                    scope = list(lower = null, upper = full), 
                    direction = "both")
 
-selected.variables = c("Swish.Projection", "Last.5.Avg", "Saber.Projection",
-                       "Season.Avg", "Roto.Projection", "Salary", "Value")
+final.formula = "Actual ~ Salary + SalDiff + Total + ISO + SLG + AB.1 + ISO.1 + 
+    SLG.1 + AVG.2 + wOBA.2 + AB.3 + AVG.3 + OBP.3 + K..3 + Last.5.Avg + 
+    Season.Ceiling + Saber.Projection + CS + Swish.Projection"
 
 
 ## Setting up data for ML
