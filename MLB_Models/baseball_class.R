@@ -24,8 +24,8 @@ library(caretEnsemble)
 ## ------------------------------------------------------------ ##
 
 
-path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters"
-path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers"
+path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters"
+path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers"
 path.saber = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Saber_Sim"
 path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Swish_Analytics"
 path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
@@ -242,17 +242,17 @@ clean.rotoguru = function(path.roto,
 }
 
 
-## Create one stacked lineup using integer linear programming
+## Type A Stacking: Create one lineup using Gurobi LP/QP
 
 ## ------------------------------------------------------------ ##
 
-stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
-                          num.hitters, num.pitchers, first.basemen,
-                          second.basemen, third.basemen,
-                          shortstops, catchers,
-                          outfielders, num.teams, hitters.teams,
-                          num.games, hitters.games, pitchers.games,
-                          salary.cap, pitchers.opponents, consecutive.matrix) {
+stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
+                            num.hitters, num.pitchers, first.basemen,
+                            second.basemen, third.basemen,
+                            shortstops, catchers,
+                            outfielders, num.teams, hitters.teams,
+                            num.games, hitters.games, pitchers.games,
+                            salary.cap, pitchers.opponents, consecutive.matrix) {
   
   model = list()
   
@@ -415,7 +415,7 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
   params = list()
   params$LogToConsole = 0
   result = gurobi(model, params)
-  print(result$status)
+  print(result$objval)
   return(result$x[1:(num.hitters + num.pitchers)])
 }
 
@@ -426,7 +426,7 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
 
 
 is.consecutive = function(hitters, i, j) {
-  if(hitters[i, "Team"] != hitters[j, "Team"] | hitters[i, "Order"] == hitters[j, "Order"]) {
+  if(hitters[i, "Team"] != hitters[j, "Team"]) {
     return(FALSE)
   }
   else if(abs(hitters[i, "Order"] - hitters[j, "Order"]) <= 2) {
@@ -754,14 +754,16 @@ backtest = function(overlaps, salary.cap,
                                        pitchers.proj)[[1]]
       
       df = create_lineups(num.lineups, overlap, 
-                          stacked.lineup, salary.cap, 
+                          stacked.lineup.a, salary.cap, 
                           hitters.proj, pitchers.proj)
-      print(which(df[1,] == 1))
-      # scores = get.scores(df, hitters.proj, pitchers.proj, 
-      #                     hitters.actual, pitchers.actual) 
-      # file_name = paste("modelb", toString(overlap), sep = "")
-      # setwd(output)
-      # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+      
+      scores = get.scores(df, hitters.proj, pitchers.proj,
+                          hitters.actual, pitchers.actual)
+      
+      file_name = paste("modelb", toString(overlap), sep = "")
+      
+      setwd(output)
+      write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
     }
   }
 }

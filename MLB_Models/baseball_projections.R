@@ -11,22 +11,11 @@ clean.rotogrinders.hitters = function(roto.path) {
                 stringsAsFactors = F)
   df$Hands = as.factor(paste(df$Hand, df$PHND, sep = ""))
   df$Away = as.factor(ifelse(grepl("@", df$Opp), "Away", "Home"))
-  df = subset(df, select = c(Name, Salary,
-                             Team, Position,
-                             Opp, Hands, Away, Order,
-                             SalDiff, RankDiff,
-                             O.U, Line, Total,
-                             Movement, AB, AVG,
-                             wOBA, ISO, Points))
-  names(df) = c("Name", "Salary",
-                "Team", "Position",
-                "Opponent", "Hands", "Location",
-                "Order", "SalDiff",
-                "RankDiff", "O.U",
-                "Line", "Total",
-                "Movement", "AB",
-                "AVG", "wOBA", "ISO",
-                "Projection")
+  df = subset(df, select = -c(Hand, Pitcher, PHND,
+                              PLTN., Rank, Average, pOWN.,
+                              ContR, X, X.1, Pt...K))
+  names(df)[which(names(df) == "Opp")] = "Opponent"
+  names(df)[which(names(df) == "Points")] = "Roto.Projection"
   df$Salary = gsub(c("K"), "", df$Salary)
   df$Salary = gsub(c("\\$"), "", df$Salary)
   df$Salary = as.numeric(df$Salary) * 1000
@@ -94,7 +83,7 @@ roto.combine = function(path.roto, is.hitter) {
       tryCatch ({
         players.files = list.append(players.files,
                                     clean.rotogrinders.hitters(file))
-      }, error = function(e) {})
+      }, error = function(e) {print(e)})
     }
   } else {
     for(file in list.files()) {
@@ -122,6 +111,18 @@ roto.combine = function(path.roto, is.hitter) {
 
 ## ------------------------------------------------------------ ##
 
+
+clean.saber = function(path.saber.file) {
+  df = read.csv(path.saber.file,
+                stringsAsFactors = F)
+  df = subset(df, 
+              select = c(Name, Projection, Actual,
+                         dk_95_percentile, PA, Singles,
+                         Doubles, Triples, HR, R, RBI,
+                         SB, CS))
+  names(df)[which(names(df) == "Projection")] = "Saber.Projection"
+  return(df)
+}
 
 saber.combine = function(path.saber) {
   setwd(path.saber)
@@ -166,17 +167,8 @@ clean.swish = function(path.swish.file) {
                       "Salary",
                       "Swish.Projection",
                       "Teams.Playing")
-  swish.df$Salary = gsub(c("\\$"), "", swish.df$Salary)
-  swish.df$Salary = gsub(c(","), "", swish.df$Salary)
-  swish.df$Salary = as.numeric(swish.df$Salary)
-  swish.df$Teams.Playing = gsub(" ", "", swish.df$Teams.Playing)
-  games = strsplit(swish.df$Teams.Playing, split = "@")
-  swish.df$Team = "CHC"
-  swish.df$Opponent = "CHC"
-  for(i in 1:nrow(swish.df)) {
-    swish.df[i,]$Team = games[[i]][1]
-    swish.df[i,]$Opponent = games[[i]][2]
-  }
+  swish.df = subset(swish.df,
+                    select = c(Name, Swish.Projection))
   return(swish.df)
 }
 
@@ -193,7 +185,7 @@ swish.combine = function(path.swish) {
     tryCatch ({
       players.files = list.append(players.files,
                                   clean.swish(file))
-    }, error = function(e) {})
+    }, error = function(e) {print(e)})
   }
   
   for(i in 1:length(players.files)) {
@@ -258,65 +250,30 @@ nerd.combine = function(path.nerd) {
 }
 
 
-## Store all cleaned dataframes in environment by calling the above functions
+## Store all cleaned dataframes for hitters in environment by calling the 
+## above functions
 
 ## ------------------------------------------------------------ ##
 
 nerd.df = nerd.combine(path.nerd)
 roto.df = roto.combine(path.roto.hitters,
-                       path.roto.pitchers)
+                       TRUE)
 swish.df = swish.combine(path.swish)
 saber.df = saber.combine(path.saber)
 
 combined.df = merge(roto.df, nerd.df,
-                    by = c("Name", "Date"))
-
-saber.df = subset(saber.df, 
-                  select = -c(Team, Opponent,
-                              Position, Salary))
+                    by = c("Name", "Date"),
+                    all.x = T)
 
 combined.df = merge(combined.df, saber.df,
-                    by = c("Name", "Date"))
-
-swish.df = subset(swish.df,
-                  select = -c(Position, Salary, 
-                              Teams.Playing, Team, 
-                              Opponent))
+                    by = c("Name", "Date"),
+                    all.x = T)
 
 combined.df = merge(combined.df, swish.df,
-                    by = c("Name", "Date"))
+                    by = c("Name", "Date"),
+                    all.x = T)
 
-
-## Which website gives the best predictions?
-
-## ------------------------------------------------------------ ##
-
-
-mse = function(actual, projected) {
-  diff = actual - projected
-  diff.sq = diff^2
-  return(sum(diff.sq))
-}
-
-mse.roto = mse(combined.df$Actual, combined.df$Roto.Projection)
-mse.nerd = mse(combined.df$Actual, combined.df$Nerd.Projection)
-mse.swish = mse(combined.df$Actual, combined.df$Swish.Projection)
-mse.saber = mse(combined.df$Actual, combined.df$Saber.Projection)
-mse.average = mse(combined.df$Actual, combined.df$Season.Avg)
-mse.25 = mse(combined.df$Actual, combined.df$Projection_25)
-mse.50 = mse(combined.df$Actual, combined.df$Projection_50)
-mse.75 = mse(combined.df$Actual, combined.df$Projection_75)
-
-mse.df = data.frame(Roto.Error = mse.roto,
-                    Nerd.Error = mse.nerd,
-                    Swish.Error = mse.swish,
-                    Saber.Error = mse.saber,
-                    Average.Error = mse.average,
-                    Error.25 = mse.25,
-                    Error.50 = mse.50,
-                    Error.75 = mse.75)
-
-print(mse.df)
+combined.df = combined.df[-which(is.na(combined.df$Actual)),]
 
 
 ## Additional "standard error" feature
@@ -324,7 +281,7 @@ print(mse.df)
 ## ------------------------------------------------------------ ##
 
 
-combined.df$Standard.Error = combined.df$Projection_85 - combined.df$Saber.Projection
+combined.df$Standard.Error = combined.df$dk_95_percentile - combined.df$Saber.Projection
 
 
 ## Dataset for modeling
@@ -333,11 +290,17 @@ combined.df$Standard.Error = combined.df$Projection_85 - combined.df$Saber.Proje
 
 
 model.df = subset(combined.df,
-                  select = -c(Name, Date, Team,
+                  select = -c(Name, Team,
                               Position, Opponent,
-                              Teams.Playing))
+                              Teams.Playing, Order))
 
-model.df$Salary = model.df$Salary/1000
+model.df$Date = as.Date(model.df$Date)
+model.df = model.df[model.df$Date > as.Date("2018-04-30"),]
+model.df$Date = as.numeric(model.df$Date - min(model.df$Date))
+
+model.df$Salary = model.df$Salary/10000
+model.df$SalDiff = model.df$SalDiff/1000
+model.df$RankDiff = model.df$RankDiff/100
 
 
 ## Examining the dataset
@@ -345,7 +308,7 @@ model.df$Salary = model.df$Salary/1000
 ## ------------------------------------------------------------ ##
 
 
-M = cor(model.df)
+M = cor(model.df[,unlist(lapply(model.df, is.numeric))])
 corrplot(M, method = "circle")
 
 

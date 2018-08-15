@@ -20,7 +20,7 @@ def main():
 	url_hitters = "https://rotogrinders.com/projected-stats/mlb-hitter?site=draftkings&date="
 	# Write CSV files to this folder: change this
 	out_hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters"
-	out_pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers"
+	out_pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers"
 
 	year = 2018
 	months = range(4, 9)
