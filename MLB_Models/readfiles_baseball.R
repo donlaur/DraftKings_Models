@@ -318,3 +318,101 @@ backtest.optimal = function(salary.cap,
   }
   return(list.append(optimum.teams, optimum.points))
 }
+
+stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
+                          num.hitters, num.pitchers, first.basemen,
+                          second.basemen, third.basemen,
+                          shortstops, outfielders,
+                          catchers, num.teams, hitters.teams,
+                          num.games, hitters.games, pitchers.games,
+                          salary.cap, pitchers.opponents, consecutive.matrix) {
+  w = function(i, j) {
+    vapply(seq_along(i), function(k) consecutive.matrix[i[k], j[k]], numeric(1L))
+  }
+  
+  m = MILPModel() %>%
+    # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
+    add_variable(hitters.lineup[i],
+                 i = 1:num.hitters,
+                 type = "binary") %>%
+    
+    # Vector consisting of dummy variables indicating whether each goalie is chosen
+    add_variable(pitchers.lineup[i],
+                 i = 1:num.pitchers,
+                 type = "binary") %>%
+    
+    # Vector consisting of dummy variables indicating whether a team is represented in the hitter lineup
+    add_variable(used.team[i],
+                 i = 1:num.teams,
+                 type = "binary") %>%
+    
+    # Eight hitters constraint
+    add_constraint(sum_expr(hitters.lineup[i], i = 1:num.hitters) == 8) %>%
+    
+    # Two pitchers constraint
+    add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
+    
+    # Variance lower bound
+    # add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
+    #                  sum_expr(colwise(players.sd[i]) * hitters.lineup[i], i = 1:num.hitters) +
+    #                  sum_expr(colwise(players.sd[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
+    
+    add_variable(z[i, j], i = 1:num.hitters, j = 1:num.hitters, type = "binary") %>%
+    add_constraint(z[i, j] == hitters.lineup[i] + hitters.lineup[j], i= 1:num.hitters, j = 1:num.hitters) %>%
+    add_constraint(sum_expr(colwise(w(i,j)) * z[i, j],
+                            i = 1:num.hitters, j = 1:num.hitters, i != j) >= 4) %>%
+    
+    # One of each position besides outfielders
+    add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(third.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(shortstops[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(catchers[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
+    add_constraint(sum_expr(colwise(outfielders[i]) * hitters.lineup[i], i = 1:num.hitters) == 3) %>%
+    
+    
+    # Budget constraint
+    add_constraint(sum_expr(colwise(hitters[i, "Salary"]) * hitters.lineup[i], i = 1:num.hitters) +
+                     sum_expr(colwise(pitchers[i, "Salary"]) * pitchers.lineup[i], i = 1:num.pitchers) <= salary.cap)
+  
+  # No more than five hitters from the same team
+  for(i in 1:num.teams) {
+    m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
+    m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
+  }
+  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
+  
+  # Players must come from at least two different games
+  m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
+  
+  for(i in 1:num.games) {
+    m = add_constraint(m, used.game[i] <= 
+                         sum_expr(colwise(players.games[t,i]) * hitters.lineup[t], t = 1:num.hitters) +
+                         sum_expr(colwise(players.games[num.hitters + t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
+  }
+  m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
+  
+  
+  # Pitcher constraint: no pitcher and hitter can come from the same team
+  for(i in 1:num.pitchers) {
+    m = add_constraint(m, sum_expr(5 * pitchers.lineup[i]) +
+                         sum_expr(colwise(pitchers.opponents[i, j]) * hitters.lineup[j], j = 1:num.hitters) <= 5)
+  }
+  
+  # Overlap constraint
+  for(i in 1:nrow(lineups)) {
+    m = add_constraint(m, sum_expr(colwise(lineups[i,j]) * hitters.lineup[j], j = 1:num.hitters) +
+                         sum_expr(colwise(lineups[i, num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) <= num.overlap)
+  }
+  
+  m = set_objective(m,
+                    sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
+                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
+                    sense = "max")
+  
+  result = solve_model(m, with_ROI(solver = "qplk"))
+  print(result)
+  hitters.df = get_solution(result, hitters.lineup[i])
+  pitchers.df = get_solution(result, pitchers.lineup[i])
+  return(append(hitters.df[, "value"], pitchers.df[, "value"]))
+}

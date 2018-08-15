@@ -3,13 +3,10 @@
 ## ------------------------------------------------------------ ##
 
 
-library(ompr)
 library(magrittr)
-library(ROI)
-library(ompr.roi)
 library(rlist)
-library(ROI.plugin.symphony)
-library(ROI.plugin.glpk)
+library(gurobi)
+library(Matrix)
 library(dplyr)
 library(purrr)
 library(DescTools)
@@ -33,6 +30,7 @@ path.saber = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/
 path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Swish_Analytics"
 path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
 output = "C:/Users/Ming/Documents/Fantasy_Models/output"
+path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_consecutive.csv"
 
 
 ## Cleans Rotogrinders CSV files
@@ -58,21 +56,38 @@ pitcher.names = function(path.saber.file) {
   return(saber.df)
 }
 
-clean.rotogrinders = function(roto.path) {
+clean.rotogrinders = function(roto.path, is.hitter) {
   df = read.csv(roto.path,
                 stringsAsFactors = F)
-  df = subset(df, select = c(Name,
+  player.df = subset(df, select = c(Name,
                              Salary,
                              Team,
                              Position,
                              Opp,
                              Points))
-  names(df) = c("Name",
-                "Salary",
-                "Team",
-                "Position",
-                "Opponent",
-                "Projection")
+  names(player.df) = c("Name",
+                       "Salary",
+                       "Team",
+                       "Position",
+                       "Opponent",
+                       "Projection")
+  if(is.hitter) {
+    player.df = subset(df, select = c(Name,
+                                      Salary,
+                                      Team,
+                                      Position,
+                                      Opp,
+                                      Order,
+                                      Points))
+    names(player.df) = c("Name",
+                         "Salary",
+                         "Team",
+                         "Position",
+                         "Opponent",
+                         "Order",
+                         "Projection")
+  }
+  df = player.df
   df$Salary = gsub(c("K"), "", df$Salary)
   df$Salary = gsub(c("\\$"), "", df$Salary)
   df$Salary = as.numeric(df$Salary) * 1000
@@ -86,7 +101,7 @@ clean.rotogrinders = function(roto.path) {
 }
 
 merge.rotogrinders = function(roto.path, path.saber.file, is.hitter) {
-  roto.file = clean.rotogrinders(roto.path)
+  roto.file = clean.rotogrinders(roto.path, is.hitter)
   saber.file = hitter.names(path.saber.file)
   if(!is.hitter) {
     saber.file = pitcher.names(path.saber.file)
@@ -231,184 +246,177 @@ clean.rotoguru = function(path.roto,
 
 ## ------------------------------------------------------------ ##
 
-
 stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
                           num.hitters, num.pitchers, first.basemen,
                           second.basemen, third.basemen,
-                          shortstops, outfielders,
-                          catchers, num.teams, hitters.teams,
+                          shortstops, catchers,
+                          outfielders, num.teams, hitters.teams,
                           num.games, hitters.games, pitchers.games,
-                          salary.cap, pitchers.opponents) {
-  # w = function(i, j) {
-  #   vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
-  # }
-  # 
-  m = MILPModel() %>%
-    # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
-    add_variable(hitters.lineup[i],
-                 i = 1:num.hitters,
-                 type = "binary") %>%
-    
-    # Vector consisting of dummy variables indicating whether each goalie is chosen
-    add_variable(pitchers.lineup[i],
-                 i = 1:num.pitchers,
-                 type = "binary") %>%
-    
-    # Vector consisting of dummy variables indicating whether a team is represented in the hitter lineup
-    add_variable(used.team[i],
-                 i = 1:num.teams,
-                 type = "binary") %>%
-    
-    # Eight hitters constraint
-    add_constraint(sum_expr(hitters.lineup[i], i = 1:num.hitters) == 8) %>%
-    
-    # Two pitchers constraint
-    add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
-    
-    # Variance lower bound
-    # add_constraint(sum_expr(colwise(w(i,j)) * hitters.lineup[j], i = 1:num.hitters, j = 1:num.hitters) +
-    #                  sum_expr(colwise(players.sd[i]) * hitters.lineup[i], i = 1:num.hitters) +
-    #                  sum_expr(colwise(players.sd[num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) >= 10) %>%
-    
-    # One of each position besides outfielders
-    add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(third.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(shortstops[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(catchers[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(outfielders[i]) * hitters.lineup[i], i = 1:num.hitters) == 3) %>%
-    
-    
-    # Budget constraint
-    add_constraint(sum_expr(colwise(hitters[i, "Salary"]) * hitters.lineup[i], i = 1:num.hitters) +
-                     sum_expr(colwise(pitchers[i, "Salary"]) * pitchers.lineup[i], i = 1:num.pitchers) <= salary.cap)
+                          salary.cap, pitchers.opponents, consecutive.matrix) {
   
-  # No more than five hitters from the same team
-  for(i in 1:num.teams) {
-    m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
-    m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
+  model = list()
+  
+  # Dimensions of constraint matrix
+  nCol = num.hitters + num.pitchers + num.teams + num.games
+  
+  # Creating empty binary slots for model variables
+  model$vtype = rep("B", num.hitters + num.pitchers + num.teams + num.games)
+  
+  # Model objective
+  model$modelsense = "max"
+  
+  # List that stores all constraints
+  constraints = list()
+  # Eight hitters constraint
+  hitters.constraint = append(rep(1, num.hitters),
+                              rep(0, num.pitchers + num.teams + num.games))
+  constraints = list.append(constraints, hitters.constraint)
+  
+  model$sense = c("=")
+  model$rhs = c(8)
+  
+  # Two pitchers constraint
+  pitchers.constraint = rep(0, nCol) 
+  pitchers.constraint[(num.hitters+1):(num.hitters+num.pitchers)] = 1
+  constraints = list.append(constraints, pitchers.constraint)
+  
+  model$sense = append(model$sense, c("="))
+  model$rhs = append(model$rhs, c(2))
+  
+  # Hitter type constraints
+  firstbase.constraint = append(first.basemen, 
+                                rep(0, num.pitchers + num.teams + num.games))
+  secondbase.constraint = append(second.basemen,
+                                 rep(0, num.pitchers + num.teams + num.games))
+  thirdbase.constraint = append(third.basemen,
+                                rep(0, num.pitchers + num.teams + num.games))
+  shortstops.constraint = append(shortstops,
+                                 rep(0, num.pitchers + num.teams + num.games))
+  catchers.constraint = append(catchers,
+                               rep(0, num.pitchers + num.teams + num.games))
+  outfielders.constraint = append(outfielders,
+                                  rep(0, num.pitchers + num.teams + num.games))
+  
+  type.constraints = list(firstbase.constraint,
+                          secondbase.constraint,
+                          thirdbase.constraint,
+                          shortstops.constraint,
+                          catchers.constraint,
+                          outfielders.constraint)
+  
+  constraints = c(constraints, type.constraints)
+  
+  model$sense = append(model$sense, rep("=", 6))
+  model$rhs = append(model$rhs, c(1, 1, 1, 1, 1, 3))
+  
+  # Budget constraint
+  salary.constraint = rep(0, nCol)
+  salary.constraint[1:(num.hitters+num.pitchers)] = append(hitters[,"Salary"], pitchers[,"Salary"])
+  constraints = list.append(constraints, salary.constraint)
+  
+  model$sense = append(model$sense, c("<"))
+  model$rhs = append(model$rhs, c(salary.cap))
+  
+  # At least two teams, and no more than five hitters from the same team
+  team.constraints.a = list()
+  team.constraints.b = list()
+  getIdx = function(idx, len) {
+    vect = rep(0, len)
+    vect[idx] = 1
+    return(vect)
   }
-  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
-  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) <= 3)
+  for(i in 1:num.teams) {
+    lfs.a = rep(0, nCol)
+    lfs.a[1:num.hitters] = hitters.teams[,i]
+    lfs.a[(num.hitters+num.pitchers+1):(num.hitters+num.pitchers+num.teams)] = -1 * getIdx(i, num.teams)
+    lfs.b = lfs.a
+    lfs.b[(num.hitters+num.pitchers+1):(num.hitters+num.pitchers+num.teams)] = -5 * getIdx(i, num.teams)
+    
+    constraints = list.append(constraints, lfs.a)
+    constraints = list.append(constraints, lfs.b)
+    
+    model$sense = append(model$sense, c(">", "<"))
+    model$rhs = append(model$rhs, c(0, 0))
+  }
+  team.size = rep(0, nCol)
+  team.size[(num.hitters+num.pitchers+1):(num.hitters+num.pitchers+num.teams)] = rep(1, num.teams)
+  
+  constraints = list.append(constraints, team.size)
+  
+  model$sense = append(model$sense, c(">"))
+  model$rhs = append(model$rhs, c(2))
   
   # Players must come from at least two different games
-  m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
-  
   for(i in 1:num.games) {
-    m = add_constraint(m, used.game[i] <= 
-                         sum_expr(colwise(hitters.games[t,i]) * hitters.lineup[t], t = 1:num.hitters) +
-                         sum_expr(colwise(pitchers.games[t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
-  }
-  m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
-
+    lfs = append(players.games[,i], rep(0, num.teams))
+    lfs = append(lfs,  -1 * getIdx(i, num.games))
     
-  # Pitcher constraint: no pitcher and hitter can come from the same team
+    constraints = list.append(constraints, lfs)
+    
+    model$sense = append(model$sense, c(">"))
+    model$rhs = append(model$rhs, c(0))
+  }
+  
+  game.number = rep(0, nCol)
+  game.number[(num.hitters+num.pitchers+num.teams+1):nCol] = rep(1, num.games)
+  
+  constraints = list.append(constraints, game.number)
+  
+  model$sense = append(model$sense, c(">"))
+  model$rhs = append(model$rhs, c(2))
+  
+  # Pitcher stacking: no hitter and pitcher from opposing teams
   for(i in 1:num.pitchers) {
-    m = add_constraint(m, sum_expr(5 * pitchers.lineup[i]) +
-                         sum_expr(colwise(pitchers.opponents[i, j]) * hitters.lineup[j], j = 1:num.hitters) <= 5)
+    lfs = append(pitchers.opponents[i,], 5 * getIdx(i, num.pitchers))
+    lfs = append(lfs, rep(0, num.teams + num.games))
+    
+    constraints = list.append(constraints, lfs)
+    
+    model$sense = append(model$sense, c("<"))
+    model$rhs = append(model$rhs, c(5))
   }
   
-  # Overlap constraint
+  # Overlap constraint: maximum number of shared players between any two lineups
   for(i in 1:nrow(lineups)) {
-    m = add_constraint(m, sum_expr(colwise(lineups[i,j]) * hitters.lineup[j], j = 1:num.hitters) +
-                         sum_expr(colwise(lineups[i, num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) <= num.overlap)
+    overlap.constraints = append(lineups[i,1:num.hitters], 
+                                 lineups[i,(num.hitters+1):(num.hitters+num.pitchers)])
+    overlap.constraints = append(overlap.constraints,
+                                 rep(0, num.teams + num.games))
+    
+    constraints = list.append(constraints, overlap.constraints)
+    
+    model$sense = append(model$sense, c("<"))
+    model$rhs = append(model$rhs, c(num.overlap))
   }
   
-  m = set_objective(m,
-                    sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
-                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
-                    sense = "max")
+  # Consecutive hitter stacking
+  empty.matrix = matrix(rep(0, nCol * nCol), ncol = nCol)
+  empty.matrix[1:num.hitters, 1:num.hitters] = consecutive.matrix
+  sparse.consecutive.matrix = Matrix(empty.matrix, sparse = T)
   
-  result = solve_model(m, with_ROI(solver = "glpk"))
-  hitters.df = get_solution(result, hitters.lineup[i])
-  pitchers.df = get_solution(result, pitchers.lineup[i])
-  return(append(hitters.df[, "value"], pitchers.df[, "value"]))
-}
-
-
-
-## Create one nonstacked lineup using integer linear programming
-
-## ------------------------------------------------------------ ##
-
-
-nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
-                             num.hitters, num.pitchers, first.basemen,
-                             second.basemen, third.basemen,
-                             shortstops, outfielders,
-                             catchers, num.teams, hitters.teams,
-                             num.games, hitters.games, pitchers.games,
-                             salary.cap, pitchers.opponents) {
-  # w = function(i, j) {
-  #   vapply(seq_along(i), function(k) hitters.covariance[i[k], j[k]], numeric(1L))
-  # }
-  # 
-  m = MILPModel() %>%
-    # Vector consisting of dummy variables indicating whether each skater is chosen for the lineup
-    add_variable(hitters.lineup[i],
-                 i = 1:num.hitters,
-                 type = "binary") %>%
-    
-    # Vector consisting of dummy variables indicating whether each goalie is chosen
-    add_variable(pitchers.lineup[i],
-                 i = 1:num.pitchers,
-                 type = "binary") %>%
-    
-    # Vector consisting of dummy variables indicating whether a team is represented in the hitter lineup
-    add_variable(used.team[i],
-                 i = 1:num.teams,
-                 type = "binary") %>%
-    
-    # Eight hitters constraint
-    add_constraint(sum_expr(hitters.lineup[i], i = 1:num.hitters) == 8) %>%
-    
-    # Two pitchers constraint
-    add_constraint(sum_expr(pitchers.lineup[i], i = 1:num.pitchers) == 2) %>%
-    
-    # One of each position besides outfielders
-    add_constraint(sum_expr(colwise(first.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(second.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(third.basemen[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(shortstops[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(catchers[i]) * hitters.lineup[i], i = 1:num.hitters) == 1) %>%
-    add_constraint(sum_expr(colwise(outfielders[i]) * hitters.lineup[i], i = 1:num.hitters) == 3) %>%
-    
-    # Budget constraint
-    add_constraint(sum_expr(colwise(hitters[i, "Salary"]) * hitters.lineup[i], i = 1:num.hitters) +
-                     sum_expr(colwise(pitchers[i, "Salary"]) * pitchers.lineup[i], i = 1:num.pitchers) <= salary.cap)
+  qc1 = list()
+  qc1$Qc = sparse.consecutive.matrix
+  qc1$sense = ">"
+  qc1$rhs = 20
   
-  # No more than five hitters from the same team
-  for(i in 1:num.teams) {
-    m = add_constraint(m, used.team[i] <= sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters))
-    m = add_constraint(m, sum_expr(colwise(hitters.teams[t,i]) * hitters.lineup[t], t = 1:num.hitters) <= 5 * used.team[i])
-  }
-  m = add_constraint(m, sum_expr(used.team[i], i = 1:num.teams) >= 2)
+  model$quadcon = list(qc1)
   
-  # Players must come from at least two different games
-  m = add_variable(m, used.game[i], i = 1:num.games, type = "binary")
+  # Convert linear constraints into a sparse matrix
+  constraints = Reduce(function(x, y) {
+    rbind(x, y)
+  }, constraints)
   
-  for(i in 1:num.games) {
-    m = add_constraint(m, used.game[i] <= 
-                         sum_expr(colwise(hitters.games[t,i]) * hitters.lineup[t], t = 1:num.hitters) +
-                         sum_expr(colwise(pitchers.games[t,i]) * pitchers.lineup[t], t = 1:num.pitchers))
-  }
-  m = add_constraint(m, sum_expr(used.game[i], i = 1:num.games) >= 2)
+  model$A = Matrix(constraints, sparse = T)
   
-  # Overlap constraint
-  for(i in 1:nrow(lineups)) {
-    m = add_constraint(m, sum_expr(colwise(lineups[i,j]) * hitters.lineup[j], j = 1:num.hitters) +
-                         sum_expr(colwise(lineups[i, num.hitters + j]) * pitchers.lineup[j], j = 1:num.pitchers) <= num.overlap)
-  }
+  # Model objective
+  model$obj = append(hitters[,"Projection"], pitchers[,"Projection"])
+  model$obj = append(model$obj, rep(0, num.teams + num.games))
   
-  m = set_objective(m,
-                    sum_expr(colwise(hitters[i, "Projection"]) * hitters.lineup[i], i = 1:num.hitters) +
-                      sum_expr(colwise(pitchers[i, "Projection"]) * pitchers.lineup[i], i = 1:num.pitchers),
-                    sense = "max")
-  
-  result = solve_model(m, with_ROI(solver = "glpk"))
-  hitters.df = get_solution(result, hitters.lineup[i])
-  pitchers.df = get_solution(result, pitchers.lineup[i])
-  return(append(hitters.df[, "value"], pitchers.df[, "value"]))
+  params = list()
+  params$LogToConsole = 0
+  result = gurobi(model, params)
+  print(result$status)
+  return(result$x[1:(num.hitters + num.pitchers)])
 }
 
 
@@ -417,19 +425,19 @@ nonstacked.lineup = function(hitters, pitchers, lineups, num.overlap,
 ## ------------------------------------------------------------ ##
 
 
-# is.consecutive = function(i, j) {
-#   if(hitters[i, "Team"] != hitters[j, "Team"] | hitters[i, "Order"] == hitters[j, "Order"]) {
-#     return(FALSE)
-#   }
-#   else if(abs(hitters[i, "Order"] - hitters[j, "Order"]) <= 2) {
-#     return(TRUE)
-#   }
-#   else if(abs((max(hitters[i, "Order"], hitters[j, "Order"]) - 9) -
-#           min(hitters[i, "Order"], hitters[j, "Order"]))) {
-#     return(TRUE)
-#   }
-#   return(FALSE)
-# }
+is.consecutive = function(hitters, i, j) {
+  if(hitters[i, "Team"] != hitters[j, "Team"] | hitters[i, "Order"] == hitters[j, "Order"]) {
+    return(FALSE)
+  }
+  else if(abs(hitters[i, "Order"] - hitters[j, "Order"]) <= 2) {
+    return(TRUE)
+  }
+  else if(abs((max(hitters[i, "Order"], hitters[j, "Order"]) - 9) -
+          min(hitters[i, "Order"], hitters[j, "Order"])) <= 2) {
+    return(TRUE)
+  }
+  return(FALSE)
+}
 
 create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                           hitters, pitchers) {
@@ -459,10 +467,10 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
     if(grepl("SS", hitters[i, "Position"])) {
       hitters.matrix[4, i] = 1
     }
-    if(grepl("OF", hitters[i, "Position"])) {
+    if(grepl("C", hitters[i, "Position"])) {
       hitters.matrix[5, i] = 1
     }
-    if(grepl("C", hitters[i, "Position"])) {
+    if(grepl("OF", hitters[i, "Position"])) {
       hitters.matrix[6, i] = 1
     }
   }
@@ -495,15 +503,16 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   }, team.distribution)
   
   # List where each entry is a vector that stores what game a hitter is playing in
-  games = unique(hitters[,"Teams.Playing"])
+  players = rbind(subset(hitters, select = -c(Order)), pitchers)
+  games = unique(players[,"Teams.Playing"])
   num.games = length(games)
   
   games.distribution = list()
   
-  for(i in 1:num.hitters) {
+  for(i in 1:nrow(players)) {
     player.info = rep(0, num.games) 
     for(j in 1:num.games) {
-      if(hitters[i, "Teams.Playing"] == games[j]) {
+      if(players[i, "Teams.Playing"] == games[j]) {
         player.info[j] = 1
       }
     }
@@ -511,30 +520,10 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   }
   
   # Converting list into a matrix
-  hitters.games = Reduce(function(x, y) {
+  players.games = Reduce(function(x, y) {
     rbind(x, y)
   }, games.distribution)
-  
-  # List where each entry is a vector that stores what game a pitcher is playing in
-  games = unique(pitchers[,"Teams.Playing"])
-  num.games = length(games)
-  
-  games.distribution = list()
-  
-  for(i in 1:num.pitchers) {
-    player.info = rep(0, num.games) 
-    for(j in 1:num.games) {
-      if(pitchers[i, "Teams.Playing"] == games[j]) {
-        player.info[j] = 1
-      }
-    }
-    games.distribution = list.append(games.distribution, player.info)
-  }
-  
-  # Converting list into a matrix
-  pitchers.games = Reduce(function(x, y) {
-    rbind(x, y)
-  }, games.distribution)
+
   
   # Mock variance vector
   # players.sd = append(hitters$Sigma, pitchers$Sigma)
@@ -561,16 +550,14 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   # n by n matrix, where each entry (x,y) is 1 if the hitter in row x is within the same five-person
   # lineup as the hitter in row y, and 0 otherwise
   
-  # empty = rep(0, num.hitters * num.hitters)
-  # consecutive.matrix = matrix(empty, nrow = num.hitters)
-  # 
-  # for(i in 1:num.hitters) {
-  #   for(j in 1:num.hitters) {
-  #     consecutive.matrix[i][j] = ifelse((hitters[i, "Team"] == hitters[j, "Team"] &
-  #                                         abs(hitters[i, "Order"] - hitters[j, "Order"]) == 1),
-  #                                       1, 0)
-  #   }
-  # }
+  empty = rep(0, num.hitters * num.hitters)
+  consecutive.matrix = matrix(empty, nrow = num.hitters)
+
+  for(i in 1:num.hitters) {
+    for(j in 1:num.hitters) {
+      consecutive.matrix[i, j] = ifelse(is.consecutive(hitters, i, j), 1, 0)
+    }
+  }
   
   
   # Create a lineup
@@ -581,7 +568,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, pitchers.games,
-                        salary.cap, pitchers.opponents)
+                        salary.cap, pitchers.opponents, consecutive.matrix)
   lineups = matrix(lineups, nrow = 1)
   
   if(num.lineups > 1) {
@@ -592,7 +579,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                            hitters.list[[4]], hitters.list[[5]],
                            hitters.list[[6]], num.teams, hitters.teams,
                            num.games, hitters.games, pitchers.games,
-                           salary.cap, pitchers.opponents)
+                           salary.cap, pitchers.opponents, consecutive.matrix)
       lineups = rbind(lineups, lineup)
     }
   }
@@ -759,9 +746,6 @@ backtest = function(overlaps, salary.cap,
       hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
       pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
       
-      nrow(hitters.proj)
-      nrow(pitchers.proj)
-      
       hitters.actual = clean.rotoguru(path.players.actual.temp, 
                                       hitters.proj, 
                                       pitchers.proj)[[2]]
@@ -772,12 +756,12 @@ backtest = function(overlaps, salary.cap,
       df = create_lineups(num.lineups, overlap, 
                           stacked.lineup, salary.cap, 
                           hitters.proj, pitchers.proj)
-      print("Created!")
-      scores = get.scores(df, hitters.proj, pitchers.proj, 
-                          hitters.actual, pitchers.actual) 
-      file_name = paste("modelb", toString(overlap), sep = "")
-      setwd(output)
-      write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+      print(which(df[1,] == 1))
+      # scores = get.scores(df, hitters.proj, pitchers.proj, 
+      #                     hitters.actual, pitchers.actual) 
+      # file_name = paste("modelb", toString(overlap), sep = "")
+      # setwd(output)
+      # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
     }
   }
 }

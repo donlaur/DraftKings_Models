@@ -15,7 +15,7 @@ path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projectio
 path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_DATE.csv"
 path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_DATE.csv"
 
-# Run backtesting (this will take hours and hours)
+# Run backtesting (this will take hours and hours, and will crash eventually on most computers)
 backtest(overlaps, salary.cap,
          num.lineups, path.hitters.proj,
          path.pitchers.proj, path.players.actual,
@@ -24,8 +24,8 @@ backtest(overlaps, salary.cap,
 
 ## Performance plot
 
-setwd("C:/Users/Ming/Documents/Fantasy_Models/output")
-df = read.csv("backtest.csv")
-df.melt = melt(df, id = "Day")
-ggplot(data = df.melt, aes(x = Day, y = value, colour = variable)) + 
-  geom_line() + xlab("Day") + ylab("Draftkings Score")
+# setwd(output)
+# df = read.csv("backtest.csv")
+# df.melt = melt(df, id = "Day")
+# ggplot(data = df.melt, aes(x = Day, y = value, colour = variable)) + 
+#   geom_line() + xlab("Day") + ylab("Draftkings Score")
