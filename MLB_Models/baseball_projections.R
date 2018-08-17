@@ -83,7 +83,7 @@ roto.combine = function(path.roto, is.hitter) {
       tryCatch ({
         players.files = list.append(players.files,
                                     clean.rotogrinders.hitters(file))
-      }, error = function(e) {print(e)})
+      }, error = function(e) {})
     }
   } else {
     for(file in list.files()) {
@@ -290,28 +290,20 @@ combined.df$Standard.Error = combined.df$dk_95_percentile - combined.df$Saber.Pr
 
 
 model.df = subset(combined.df,
-                  select = -c(Name, Team,
+                  select = -c(Team,
                               Position, Opponent,
                               Teams.Playing, Order))
 
 model.df$Date = as.Date(model.df$Date)
-model.df = model.df[model.df$Date > as.Date("2018-04-30"),]
+model.df = model.df[model.df$Date > as.Date("2018-05-30"),]
 model.df$Date = as.numeric(model.df$Date - min(model.df$Date))
 
 model.df$Salary = model.df$Salary/10000
 model.df$SalDiff = model.df$SalDiff/1000
 model.df$RankDiff = model.df$RankDiff/100
 
-train.df = model.df[model.df$Date < 90,]
-test.df = model.df[model.df$Date >= 90,]
-
-## Examining the dataset
-
-## ------------------------------------------------------------ ##
-
-
-M = cor(model.df[,unlist(lapply(model.df, is.numeric))])
-corrplot(M, method = "circle")
+train.df = model.df[model.df$Date < 60,]
+test.df = model.df[model.df$Date >= 60,]
 
 
 ## Multiple imputation on testing and training data
@@ -325,7 +317,7 @@ train.df = mice::complete(temp.data.train)
 test.df = mice::complete(temp.data.test)
 
 
-## Forward selection
+## Forward selection and Cook's distance filtering
 
 ## ------------------------------------------------------------ ##
 
@@ -337,51 +329,95 @@ both.select = step(full,
                    scope = list(lower = null, upper = full), 
                    direction = "both")
 
+forward.select = step(null, 
+                      scope = list(lower = null, upper = full), 
+                      direction = "forward")
+
 final.formula = "Actual ~ Salary + SalDiff + Total + ISO + SLG + AB.1 + ISO.1 + 
     SLG.1 + AVG.2 + wOBA.2 + AB.3 + AVG.3 + OBP.3 + K..3 + Last.5.Avg + 
     Season.Ceiling + Saber.Projection + CS + Swish.Projection"
 
+forward.formula = "Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total + 
+    CS + ISO + K..3 + Season.Ceiling + SalDiff + Salary"
 
-## Setting up data for ML
+lm.both = lm(as.formula(final.formula), data = train.df)
+lm.fwd = lm(as.formula(forward.formula), data = train.df)
+
+
+## First layer models
 
 ## ------------------------------------------------------------ ##
 
 
-samples = sample(nrow(model.df), floor(nrow(model.df) * 0.8))
-train.df = model.df[samples,]
-test.df = model.df[-samples,]
+# Generalized additive model
 
-cores = detectCores()
-cluster = makePSOCKcluster(cores)
-registerDoParallel(cluster)
+train.df$Name = as.factor(train.df$Name)
+
+
+mlb.gam = gam(Actual ~ s(Swish.Projection, by = Away) + s(Last.5.Avg) + s(Saber.Projection, by = Away) + 
+                Total + CS + ISO + s(K..3) + Season.Ceiling + SalDiff + Salary + s(Date, bs = "re")
+                te(Season.Ceiling, Saber.Projection) + te(SalDiff, Last.5.Avg),
+              data = train.df,
+              method = "REML")
+
+# Linear mixed effects model
+
+mlb.lme = lme(Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total + 
+                 CS + ISO + K..3 + Season.Ceiling + SalDiff + Salary, 
+              random = ~ 1 | Name,
+               data = train.df)
+
+mse = function(df, projected) {
+  for(i in 1:length(projected)) {
+    if(is.na(projected[i])) {
+      projected[i] = df$Swish.Projection[i]
+    }
+  }
+  diff = df$Actual - projected
+  diff.sq = diff^2
+  return(sum(diff.sq))
+}
+
+
+training.set.a = which(train.df$Date <= 45)
+training.set.b = which(train.df$Date <= 50)
+training.set.c = which(train.df$Date <= 55)
+
+holdout.set.a = which(train.df$Date > 45 & train.df$Date < 50)
+holdout.set.b = which(train.df$Date > 50 & train.df$Date < 55)
+holdout.set.c = which(train.df$Date > 55 & train.df$Date < 60)
+
+
+fit.on = list(rs1 = training.set.a,
+              rs2 = training.set.b,
+              rs3 = training.set.c)
+
+pred.on = list(rs1 = holdout.set.a,
+               rs2 = holdout.set.b,
+               rs3 = holdout.set.c)
+
 
 control = trainControl(method = "cv",
-                       number = 10,
-                       allowParallel = T,
+                       index = fit.on,
+                       indexOut = pred.on,
                        verboseIter = T,
                        summaryFunction = defaultSummary)
 
-label = "Actual"
-all.predictors = names(train.df)[names(train.df) != label]
+labelName = "Actual"
+predictors = c("Salary", "SalDiff", "Total", "ISO", "SLG", "AB.1", "ISO.1",
+  "SLG.1", "AVG.2", "wOBA.2", "AB.3", "AVG.3", "OBP.3", "K..3", "Last.5.Avg",
+  "Season.Ceiling", "Saber.Projection", "CS", "Swish.Projection", "Name")
 
-model.a = train(train.df[,all.predictors],
-                train.df[,label],
-                method = "rf",
-                trControl = control)
 
-model.b = train(train.df[,selected.variables],
-                train.df[,label],
-                method = "rf",
-                trControl = control)
+model.gbm = train(as.matrix(train.df[,predictors]),
+                  train.df[,labelName],
+                  method = "gbm",
+                  trControl = control)
 
-model.c = train(train.df[,all.predictors],
-                train.df[,label],
-                method = "rf",
-                preProcess = c("center", "scale"),
-                trControl = control)
-
-model.d = train(train.df[,selected.variables],
-                train.df[,label],
-                method = "rf",
-                preProcess = c("pca"),
-                trControl = control)
+mixed.boost = metb(as.matrix(train.df[,predictors]),
+                   train.df[,labelName],
+                   id = "Name",
+                   n.trees = 50,
+                   interaction.depth = 3,
+                   shrinkage = 0.1,
+                   n.minobsinnode = 10)

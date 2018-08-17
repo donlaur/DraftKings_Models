@@ -416,3 +416,70 @@ stacked.lineup = function(hitters, pitchers, lineups, num.overlap,
   pitchers.df = get_solution(result, pitchers.lineup[i])
   return(append(hitters.df[, "value"], pitchers.df[, "value"]))
 }
+
+get.scores = function(lineups, hitters, pitchers, 
+                      hitters.actual, pitchers.actual) {
+  # Points vector
+  points = rep(0, nrow(lineups))
+  
+  for(i in 1:nrow(lineups)) {
+    lineup = lineups[i,]
+    chosen.hitters = lineup[1:nrow(hitters)]
+    chosen.pitchers = lineup[(nrow(hitters) + 1):length(lineup)]
+    
+    hitters.indices = which(chosen.hitters == 1)
+    pitchers.indices = which(chosen.pitchers == 1)
+    
+    for(j in hitters.indices) {
+      name = unlist(strsplit(hitters[j,1], split = " "))
+      row = which(grepl(name[1], hitters.actual[,1]) & grepl(name[2], hitters.actual[,1]))
+      if(length(row) == 0) {
+        name = hitters[j,1]
+        for(k in 1:nrow(hitters.actual)) {
+          hitter.name = unlist(strsplit(unlist(hitters.actual[k,1]), split = " "))
+          if(all(sapply(hitter.name, function(x) {
+            grepl(x, name, ignore.case = T) 
+          }))) {
+            row = k
+          }
+        }
+      }
+      if(length(row) == 0) {
+        name = unlist(strsplit(hitters[j,1], split = " "))
+        team = substring(hitters[j,"Team"], 1, 1)
+        row = which(grepl(team, hitters.actual[,"Team"]) & grepl(name[length(name)], hitters.actual[,1]) &
+                      grepl(substring(name[length(name)-1], 1, 1), hitters.actual[,1]))
+      }
+      tryCatch ({
+        points[i] = points[i] + hitters.actual[row, "Projection"]
+      }, error = function(e) {print(name)})
+    }
+    
+    for(j in pitchers.indices) {
+      name = unlist(strsplit(pitchers[j,1], split = " "))
+      row = which(grepl(name[1], pitchers.actual[,1]) & grepl(name[2], pitchers.actual[,1]))
+      if(length(row) == 0) {
+        name = pitchers[j,1]
+        for(k in 1:nrow(pitchers.actual)) {
+          pitcher.name = unlist(strsplit(unlist(pitchers.actual[k,1]), split = " "))
+          if(all(sapply(pitcher.name, function(x) {
+            grepl(x, name, ignore.case = T) 
+          }))) {
+            row = k
+          }
+        }
+      }
+      if(length(row) == 0) {
+        name = unlist(strsplit(pitchers[j,1], split = " "))
+        team = substring(pitchers[j,"Team"], 1, 1)
+        row = which(grepl(team, pitchers.actual[,"Team"]) & grepl(name[length(name)], pitchers.actual[,1]) &
+                      grepl(substring(name[length(name)-1], 1, 1), pitchers.actual[,1]))
+      }
+      tryCatch ({
+        points[i] = points[i] + pitchers.actual[row, "Projection"]
+      }, error = function(e) {print(name)})
+    }
+  }
+  
+  return(points)
+}

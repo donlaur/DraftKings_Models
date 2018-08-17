@@ -18,7 +18,8 @@ library(corrplot)
 library(leaps)
 library(caretEnsemble)
 library(mice)
-library(glmulti)
+library(mgcv)
+library(nlme)
 
 
 ## Paths to folders containing scraped data
@@ -44,18 +45,20 @@ hitter.names = function(path.saber.file) {
   saber.df = read.csv(path.saber.file,
                       stringsAsFactors = F)
   saber.df = saber.df[saber.df$Position != "P",]
-  saber.df = as.data.frame(saber.df[,"Name"])
-  names(saber.df) = "Name"
-  return(saber.df)
+  saber.df = subset(saber.df,
+                    select = c(Name, Actual, Projection, dk_95_percentile))
+  saber.df$Sigma = saber.df$dk_95_percentile - saber.df$Projection
+  return(subset(saber.df, select = c(Name, Actual, Projection, Sigma)))
 }
 
 pitcher.names = function(path.saber.file) {
   saber.df = read.csv(path.saber.file,
                       stringsAsFactors = F)
   saber.df = saber.df[saber.df$Position == "P",]
-  saber.df = as.data.frame(saber.df[,"Name"])
-  names(saber.df) = "Name"
-  return(saber.df)
+  saber.df = subset(saber.df,
+                    select = c(Name, Actual, Projection, dk_95_percentile))
+  saber.df$Sigma = saber.df$dk_95_percentile - saber.df$Projection
+  return(subset(saber.df, select = c(Name, Actual, Projection, Sigma)))
 }
 
 clean.rotogrinders = function(roto.path, is.hitter) {
@@ -65,29 +68,25 @@ clean.rotogrinders = function(roto.path, is.hitter) {
                              Salary,
                              Team,
                              Position,
-                             Opp,
-                             Points))
+                             Opp))
   names(player.df) = c("Name",
                        "Salary",
                        "Team",
                        "Position",
-                       "Opponent",
-                       "Projection")
+                       "Opponent")
   if(is.hitter) {
     player.df = subset(df, select = c(Name,
                                       Salary,
                                       Team,
                                       Position,
                                       Opp,
-                                      Order,
-                                      Points))
+                                      Order))
     names(player.df) = c("Name",
                          "Salary",
                          "Team",
                          "Position",
                          "Opponent",
-                         "Order",
-                         "Projection")
+                         "Order")
   }
   df = player.df
   df$Salary = gsub(c("K"), "", df$Salary)
@@ -131,7 +130,7 @@ merge.rotogrinders = function(roto.path, path.saber.file, is.hitter) {
                       grepl(substring(name[length(name) - 1], 1, 1), roto.file[,1]))
       }
       tryCatch ({
-        merged.file[i,] = roto.file[row,]
+        merged.file[i,5:ncol(merged.file)] = roto.file[row,2:ncol(roto.file)]
       }, error = function(e) {})
     }
   }
@@ -349,9 +348,9 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   model$rhs = append(model$rhs, c(2))
   
   # Players must come from at least two different games
-  for(i in 1:num.games) {
-    lfs = append(players.games[,i], rep(0, num.teams))
-    lfs = append(lfs,  -1 * getIdx(i, num.games))
+  for(k in 1:num.games) {
+    lfs = append(players.games[,k], rep(0, num.teams))
+    lfs = append(lfs,  -1 * getIdx(k, num.games))
     
     constraints = list.append(constraints, lfs)
     
@@ -380,9 +379,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   
   # Overlap constraint: maximum number of shared players between any two lineups
   for(i in 1:nrow(lineups)) {
-    overlap.constraints = append(lineups[i,1:num.hitters], 
-                                 lineups[i,(num.hitters+1):(num.hitters+num.pitchers)])
-    overlap.constraints = append(overlap.constraints,
+    overlap.constraints = append(lineups[i,],
                                  rep(0, num.teams + num.games))
     
     constraints = list.append(constraints, overlap.constraints)
@@ -403,6 +400,15 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   
   model$quadcon = list(qc1)
   
+  # No pitcher can be chosen more than 50 times
+  for(i in 1:num.pitchers) {
+    lhs = rep(0, nCol)
+    lhs[num.hitters + i] = 1
+    constraints = list.append(constraints, lhs)
+    model$sense = append(model$sense, c("<"))
+    model$rhs = append(model$rhs, c(50 - sum(lineups[,(num.hitters + i)])))
+  }
+  
   # Convert linear constraints into a sparse matrix
   constraints = Reduce(function(x, y) {
     rbind(x, y)
@@ -417,9 +423,9 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   params = list()
   params$LogToConsole = 0
   result = gurobi(model, params)
-  print(result$objval)
   return(result$x[1:(num.hitters + num.pitchers)])
 }
+
 
 
 ## Create desired number of lineups with desired model
@@ -442,7 +448,7 @@ is.consecutive = function(hitters, i, j) {
 }
 
 create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
-                          hitters, pitchers) {
+                          hitters, pitchers, abs.weight, rel.weight) {
   
   # Number of hitters
   num.hitters = nrow(hitters)
@@ -507,14 +513,28 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   # List where each entry is a vector that stores what game a hitter is playing in
   players = rbind(subset(hitters, select = -c(Order)), pitchers)
   games = unique(players[,"Teams.Playing"])
-  num.games = length(games)
   
+  duplicated = c()
+  for(game in games) {
+    game = unlist(strsplit(game, split = "@"))
+    if(length(which(grepl(game[1], duplicated) & 
+             grepl(game[2], duplicated))) > 0) {
+      games = games[games != paste(game[1], game[2], sep = "@")]
+    }
+    else {
+      duplicated = append(duplicated, paste(game[1], game[2], sep = "@"))
+    }
+  }
+  
+  num.games = length(games)
   games.distribution = list()
   
   for(i in 1:nrow(players)) {
     player.info = rep(0, num.games) 
+    team = unlist(strsplit(players[i, "Teams.Playing"], split = "@"))
     for(j in 1:num.games) {
-      if(players[i, "Teams.Playing"] == games[j]) {
+      if(grepl(team[1], games[j]) & 
+         grepl(team[2], games[j])) {
         player.info[j] = 1
       }
     }
@@ -525,13 +545,6 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
   players.games = Reduce(function(x, y) {
     rbind(x, y)
   }, games.distribution)
-
-  
-  # Mock variance vector
-  # players.sd = append(hitters$Sigma, pitchers$Sigma)
-  
-  # Covariance matrix
-  # hitters.covariance = get.cov(hitter.list, hitters)
   
   # Pitchers' opponents
   opponents = pitchers[,"Opponent"]
@@ -602,16 +615,14 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
     chosen.hitters = lineup[1:nrow(hitters)]
     chosen.pitchers = lineup[(nrow(hitters) + 1):length(lineup)]
     
-    hitters.indices = which(chosen.hitters == 1)
-    pitchers.indices = which(chosen.pitchers == 1)
+    hitters.indices = which(chosen.hitters > 0.5)
+    pitchers.indices = which(chosen.pitchers > 0.5)
     
     names = append(c(hitters[hitters.indices, "Name"]),
                    c(pitchers[pitchers.indices, "Name"]))
     
-    points = sum(hitters[hitters.indices, "Projection"]) +
-      sum(pitchers[pitchers.indices, "Projection"])
-    
-    names = append(names, toString(points))
+    names = append(names,
+                   c(hitters[hitters.indices, "Position"]))
     
     write.table(matrix(names, nrow = 1),
                 path.output,
@@ -630,8 +641,7 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
 ## ------------------------------------------------------------ ##
 
 
-get.scores = function(lineups, hitters, pitchers, 
-                      hitters.actual, pitchers.actual) {
+get.scores = function(lineups, hitters, pitchers) {
   # Points vector
   points = rep(0, nrow(lineups))
   
@@ -640,62 +650,16 @@ get.scores = function(lineups, hitters, pitchers,
     chosen.hitters = lineup[1:nrow(hitters)]
     chosen.pitchers = lineup[(nrow(hitters) + 1):length(lineup)]
     
-    hitters.indices = which(chosen.hitters == 1)
-    pitchers.indices = which(chosen.pitchers == 1)
+    hitters.indices = which(chosen.hitters > 0.5)
+    pitchers.indices = which(chosen.pitchers > 0.5)
     
-    for(j in hitters.indices) {
-      name = unlist(strsplit(hitters[j,1], split = " "))
-      row = which(grepl(name[1], hitters.actual[,1]) & grepl(name[2], hitters.actual[,1]))
-      if(length(row) == 0) {
-        name = hitters[j,1]
-        for(k in 1:nrow(hitters.actual)) {
-          hitter.name = unlist(strsplit(unlist(hitters.actual[k,1]), split = " "))
-          if(all(sapply(hitter.name, function(x) {
-            grepl(x, name, ignore.case = T) 
-          }))) {
-            row = k
-          }
-        }
-      }
-      if(length(row) == 0) {
-        name = unlist(strsplit(hitters[j,1], split = " "))
-        team = substring(hitters[j,"Team"], 1, 1)
-        row = which(grepl(team, hitters.actual[,"Team"]) & grepl(name[length(name)], hitters.actual[,1]) &
-                      grepl(substring(name[length(name)-1], 1, 1), hitters.actual[,1]))
-      }
-      tryCatch ({
-        points[i] = points[i] + hitters.actual[row, "Projection"]
-      }, error = function(e) {print(name)})
-    }
-    
-    for(j in pitchers.indices) {
-      name = unlist(strsplit(pitchers[j,1], split = " "))
-      row = which(grepl(name[1], pitchers.actual[,1]) & grepl(name[2], pitchers.actual[,1]))
-      if(length(row) == 0) {
-        name = pitchers[j,1]
-        for(k in 1:nrow(pitchers.actual)) {
-          pitcher.name = unlist(strsplit(unlist(pitchers.actual[k,1]), split = " "))
-          if(all(sapply(pitcher.name, function(x) {
-            grepl(x, name, ignore.case = T) 
-          }))) {
-            row = k
-          }
-        }
-      }
-      if(length(row) == 0) {
-        name = unlist(strsplit(pitchers[j,1], split = " "))
-        team = substring(pitchers[j,"Team"], 1, 1)
-        row = which(grepl(team, pitchers.actual[,"Team"]) & grepl(name[length(name)], pitchers.actual[,1]) &
-                      grepl(substring(name[length(name)-1], 1, 1), pitchers.actual[,1]))
-      }
-      tryCatch ({
-        points[i] = points[i] + pitchers.actual[row, "Projection"]
-      }, error = function(e) {print(name)})
-    }
+    points[i] = sum(hitters[hitters.indices, "Actual"]) +
+      sum(pitchers[pitchers.indices, "Actual"])
   }
   
   return(points)
 }
+
 
 
 ## Returns the optimal lineup performance 
@@ -732,6 +696,7 @@ backtest = function(overlaps, salary.cap,
                     num.lineups, path.hitters.proj,
                     path.pitchers.proj, path.players.actual,
                     path.saber) {
+  max.scores = list()
   saber.files = list.files(path.saber)[c(200, 220, 240, 280, 320, 340, 380)]
   dates = lapply(saber.files, function(x) {
     unlist(strsplit(gsub("[A-z\\.]", "", x), split = " "))[1]
@@ -748,24 +713,22 @@ backtest = function(overlaps, salary.cap,
       hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
       pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
       
-      hitters.actual = clean.rotoguru(path.players.actual.temp, 
-                                      hitters.proj, 
-                                      pitchers.proj)[[2]]
-      pitchers.actual = clean.rotoguru(path.players.actual.temp, 
-                                       hitters.proj, 
-                                       pitchers.proj)[[1]]
-      
       df = create_lineups(num.lineups, overlap, 
                           stacked.lineup.a, salary.cap, 
-                          hitters.proj, pitchers.proj)
+                          hitters.proj, pitchers.proj,
+                          0.1, 0.01)
       
-      scores = get.scores(df, hitters.proj, pitchers.proj,
-                          hitters.actual, pitchers.actual)
+      print("Created!")
       
-      file_name = paste("modelb", toString(overlap), sep = "")
+      scores = get.scores(df, hitters.proj, pitchers.proj)
       
-      setwd(output)
-      write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+      # file_name = paste("modelb", toString(overlap), sep = "")
+      # setwd(output)
+      # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+      
+      max.scores = list.append(max.scores, name = max(scores))
+      names(max.scores)[which(names(max.scores) == "name")] = paste("overlap", toString(overlap), sep = ".")
     }
   }
+  return(max.scores)
 }

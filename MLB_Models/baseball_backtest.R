@@ -2,7 +2,7 @@ source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 
 
 # Overlaps to test
-overlaps = 5:6
+overlaps = 5:7
 
 # Salary cap
 salary.cap = 50000
@@ -16,7 +16,7 @@ path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projecti
 path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_DATE.csv"
 
 # Run backtesting (this will take hours and hours, and will crash eventually on most computers)
-backtest(overlaps, salary.cap,
+results = backtest(overlaps, salary.cap,
          num.lineups, path.hitters.proj,
          path.pitchers.proj, path.players.actual,
          path.saber)

@@ -26,7 +26,7 @@ def main():
 	months = range(4, 9)
 	days = {4:30, 5:31, 6:30, 7:31, 8:4}
 
-	select(url = url_hitters, out = out_hitters, year = year, months = months, days = days, player_type = "hitter")
+	select(url = url_pitchers, out = out_pitchers, year = year, months = months, days = days, player_type = "pitcher")
 
 def select(url, out, year, months, days, player_type):
 	# Initialize Chromedriver
@@ -35,8 +35,8 @@ def select(url, out, year, months, days, player_type):
 	for month in months:
 		num_days = days[month]
 		for day in range(1, num_days + 1):
+			# Get date of interest as a string
 			try:
-				# Get date of interest as a string
 				t = datetime.datetime(year, month, day, 0, 0)
 				t = t.strftime('%Y-%m-%d')
 
@@ -46,17 +46,23 @@ def select(url, out, year, months, days, player_type):
 
 				wait = WebDriverWait(driver, 100)
 
+				start = 20
+				end = 30
+				if player_type == "pitcher":
+					start = 16
+					end = 34
+
 				# Get HTML of entire page
 				wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class = 'rgt-col']")))
 				old_columns = driver.find_elements_by_xpath("//div[@class = 'rgt-col']")
-				old_text = "".join(map(lambda x: x.text, old_columns[20:30]))
+				old_text = "".join(map(lambda x: x.text, old_columns[start:end]))
 
 				last_two = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = 'last-two']")))
 				four_weeks = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '4weeks']")))
 				two_weeks = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '2weeks']")))
 				one_week = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '1week']")))
 
-				options = [last_two, four_weeks, two_weeks, one_week]
+				options = [one_week, two_weeks, four_weeks, last_two]
 
 				final_content = []
 
@@ -66,12 +72,12 @@ def select(url, out, year, months, days, player_type):
 
 					wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class = 'rgt-col']")))
 					new_columns = driver.find_elements_by_xpath("//div[@class = 'rgt-col']")
-					new_text = "".join(map(lambda x: x.text, new_columns[20:30]))
+					new_text = "".join(map(lambda x: x.text, new_columns[start:end]))
 					counter = 0
 					while old_text == new_text:
 						time.sleep(2)
 						new_columns = driver.find_elements_by_xpath("//div[@class = 'rgt-col']")
-						new_text = "".join(map(lambda x: x.text, new_columns[20:30]))
+						new_text = "".join(map(lambda x: x.text, new_columns[start:end]))
 						counter = counter + 1
 						if counter == 25:
 							raise Exception("Timed out!")
@@ -83,7 +89,7 @@ def select(url, out, year, months, days, player_type):
 						final_content = columns
 					else:
 						columns = []
-						for column in new_columns[20:30]:
+						for column in new_columns[start:end]:
 							columns.append([val.text.encode('utf8') for val in column.find_elements_by_xpath("./div")])
 						final_content = final_content + columns
 
