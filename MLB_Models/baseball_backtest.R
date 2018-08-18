@@ -17,9 +17,9 @@ path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/
 
 # Run backtesting (this will take hours and hours, and will crash eventually on most computers)
 results = backtest(overlaps, salary.cap,
-         num.lineups, path.hitters.proj,
-         path.pitchers.proj, path.players.actual,
-         path.saber)
+                   num.lineups, path.hitters.proj,
+                   path.pitchers.proj, path.players.actual,
+                   path.saber)
 
 
 ## Performance plot

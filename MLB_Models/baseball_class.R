@@ -252,7 +252,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
                             second.basemen, third.basemen,
                             shortstops, catchers,
                             outfielders, num.teams, hitters.teams,
-                            num.games, hitters.games, pitchers.games,
+                            num.games, hitters.games, players.games,
                             salary.cap, pitchers.opponents, consecutive.matrix) {
   
   model = list()
@@ -582,7 +582,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[2]], hitters.list[[3]],
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
-                        num.games, hitters.games, pitchers.games,
+                        num.games, hitters.games, players.games,
                         salary.cap, pitchers.opponents, consecutive.matrix)
   lineups = matrix(lineups, nrow = 1)
   
@@ -593,7 +593,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                            hitters.list[[2]], hitters.list[[3]],
                            hitters.list[[4]], hitters.list[[5]],
                            hitters.list[[6]], num.teams, hitters.teams,
-                           num.games, hitters.games, pitchers.games,
+                           num.games, hitters.games, players.games,
                            salary.cap, pitchers.opponents, consecutive.matrix)
       lineups = rbind(lineups, lineup)
     }
@@ -697,18 +697,18 @@ backtest = function(overlaps, salary.cap,
                     path.pitchers.proj, path.players.actual,
                     path.saber) {
   max.scores = list()
-  saber.files = list.files(path.saber)[c(200, 220, 240, 280, 320, 340, 380)]
+  saber.files = list.files(path.saber)[c(200, 220, 280, 320, 340, 380)]
   dates = lapply(saber.files, function(x) {
     unlist(strsplit(gsub("[A-z\\.]", "", x), split = " "))[1]
   })
   for(overlap in overlaps) {
-    for(i in 1:length(dates)) {
-      date = dates[[i]]
+    for(d in 1:length(dates)) {
+      date = dates[[d]]
       path.hitters.proj.temp = gsub.custom(path.hitters.proj, date)
       path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, date)
       path.players.actual.temp = gsub.custom(path.players.actual, date)
       
-      saber.file = paste(path.saber, saber.files[[i]], sep = "/")
+      saber.file = paste(path.saber, saber.files[[d]], sep = "/")
       
       hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
       pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
