@@ -87,6 +87,7 @@ clean.rotogrinders = function(roto.path, is.hitter) {
                          "Position",
                          "Opponent",
                          "Order")
+    df$Order = as.numeric(df$Order)
   }
   df = player.df
   df$Salary = gsub(c("K"), "", df$Salary)
@@ -133,6 +134,9 @@ merge.rotogrinders = function(roto.path, path.saber.file, is.hitter) {
         merged.file[i,5:ncol(merged.file)] = roto.file[row,2:ncol(roto.file)]
       }, error = function(e) {})
     }
+  }
+  if(is.hitter) {
+    merged.file$Order = as.numeric(merged.file$Order)
   }
   return(merged.file[complete.cases(merged.file),])
 }
@@ -268,6 +272,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   
   # List that stores all constraints
   constraints = list()
+  
   # Eight hitters constraint
   hitters.constraint = append(rep(1, num.hitters),
                               rep(0, num.pitchers + num.teams + num.games))
@@ -392,22 +397,22 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   empty.matrix = matrix(rep(0, nCol * nCol), ncol = nCol)
   empty.matrix[1:num.hitters, 1:num.hitters] = consecutive.matrix
   sparse.consecutive.matrix = Matrix(empty.matrix, sparse = T)
-  
+
   qc1 = list()
   qc1$Qc = sparse.consecutive.matrix
   qc1$sense = ">"
-  qc1$rhs = 20
-  
+  qc1$rhs = 24
+
   model$quadcon = list(qc1)
   
   # No pitcher can be chosen more than 50 times
-  for(i in 1:num.pitchers) {
-    lhs = rep(0, nCol)
-    lhs[num.hitters + i] = 1
-    constraints = list.append(constraints, lhs)
-    model$sense = append(model$sense, c("<"))
-    model$rhs = append(model$rhs, c(50 - sum(lineups[,(num.hitters + i)])))
-  }
+  # for(i in 1:num.pitchers) {
+  #   lhs = rep(0, nCol)
+  #   lhs[num.hitters + i] = 1
+  #   constraints = list.append(constraints, lhs)
+  #   model$sense = append(model$sense, c("<"))
+  #   model$rhs = append(model$rhs, c(50 - sum(lineups[,(num.hitters + i)])))
+  # }
   
   # Convert linear constraints into a sparse matrix
   constraints = Reduce(function(x, y) {
@@ -423,6 +428,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   params = list()
   params$LogToConsole = 0
   result = gurobi(model, params)
+  # print(result$objval)
   return(result$x[1:(num.hitters + num.pitchers)])
 }
 
@@ -703,31 +709,34 @@ backtest = function(overlaps, salary.cap,
   })
   for(overlap in overlaps) {
     for(d in 1:length(dates)) {
-      date = dates[[d]]
-      path.hitters.proj.temp = gsub.custom(path.hitters.proj, date)
-      path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, date)
-      path.players.actual.temp = gsub.custom(path.players.actual, date)
-      
-      saber.file = paste(path.saber, saber.files[[d]], sep = "/")
-      
-      hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
-      pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
-      
-      df = create_lineups(num.lineups, overlap, 
-                          stacked.lineup.a, salary.cap, 
-                          hitters.proj, pitchers.proj,
-                          0.1, 0.01)
-      
-      print("Created!")
-      
-      scores = get.scores(df, hitters.proj, pitchers.proj)
-      
-      # file_name = paste("modelb", toString(overlap), sep = "")
-      # setwd(output)
-      # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
-      
-      max.scores = list.append(max.scores, name = max(scores))
-      names(max.scores)[which(names(max.scores) == "name")] = paste("overlap", toString(overlap), sep = ".")
+      tryCatch({
+        date = dates[[d]]
+        path.hitters.proj.temp = gsub.custom(path.hitters.proj, date)
+        path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, date)
+        
+        saber.file = paste(path.saber, saber.files[[d]], sep = "/")
+        
+        hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
+        pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
+        
+        df = create_lineups(num.lineups, overlap, 
+                            stacked.lineup.a, salary.cap, 
+                            hitters.proj, pitchers.proj,
+                            0.1, 0.01)
+        
+        scores = get.scores(df, hitters.proj, pitchers.proj)
+        
+        # file_name = paste("modelb", toString(overlap), sep = "")
+        # setwd(output)
+        # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
+        
+        max.scores = list.append(max.scores, name = max(scores))
+        
+        print(max(scores))
+
+        names(max.scores)[which(names(max.scores) == "name")] = 
+          paste("overlap", toString(overlap), sep = ".")
+      }, error = function(e) {})
     }
   }
   return(max.scores)
