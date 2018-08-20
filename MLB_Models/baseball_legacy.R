@@ -483,3 +483,23 @@ get.scores = function(lineups, hitters, pitchers,
   
   return(points)
 }
+
+
+## Returns the optimal lineup performance 
+
+## ------------------------------------------------------------ ##
+
+
+get.optimum = function(df, hitters.actual, pitchers.actual) {
+  lineup = df
+  chosen.hitters = lineup[1:nrow(hitters.actual)]
+  chosen.pitchers = lineup[(nrow(hitters.actual) + 1):length(lineup)]
+  
+  hitters.indices = which(chosen.hitters == 1)
+  pitchers.indices = which(chosen.pitchers == 1)
+  
+  points = sum(hitters.actual[hitters.indices, "Projection"]) +
+    sum(pitchers.actual[pitchers.indices, "Projection"])
+  
+  return(points)
+}

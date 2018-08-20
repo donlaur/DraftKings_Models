@@ -36,27 +36,11 @@ clean.rotogrinders.pitchers = function(roto.path) {
   df = read.csv(roto.path,
                 stringsAsFactors = F)
   df$Away = as.factor(ifelse(grepl("@", df$Opp), "Away", "Home"))
-  df = subset(df, select = c(Name, Salary,
-                             Team, Position,
-                             Opp, Hand, Away, 
-                             SalDiff, RankDiff,
-                             O.U, Line, Total,
-                             Movement, xL, LwOBA,
-                             LISO, LK.9, xR, RwOBA,
-                             RISO, RK.9, GP, SIERA,
-                             xFIP, HR.FB, xWOBA, xK.9,
-                             Points))
-  names(df) = c("Name", "Salary",
-                "Team", "Position",
-                "Opponent", "Hand", "Location",
-                "SalDiff", "RankDiff", "O.U",
-                "Line", "Total",
-                "Movement", "xL",
-                "LwOBA", "LISO", "LK.9",
-                "xR", "RwOBA", "RISO",
-                "RK.9", "GP", "SIERA",
-                "xFIP", "HR.FB", "xWOBA",
-                "xK.9", "Projection")
+  df = subset(df, select = -c( Rank, Average, pOWN.,
+                               ContR, X, X.1, X.2, X.3, X.4,
+                               X.5, X.6, X.7))
+  names(df)[which(names(df) == "Opp")] = "Opponent"
+  names(df)[which(names(df) == "Points")] = "Roto.Projection"
   df$Salary = gsub(c("K"), "", df$Salary)
   df$Salary = gsub(c("\\$"), "", df$Salary)
   df$Salary = as.numeric(df$Salary) * 1000
@@ -185,7 +169,7 @@ swish.combine = function(path.swish) {
     tryCatch ({
       players.files = list.append(players.files,
                                   clean.swish(file))
-    }, error = function(e) {print(e)})
+    }, error = function(e) {})
   }
   
   for(i in 1:length(players.files)) {
@@ -255,55 +239,53 @@ nerd.combine = function(path.nerd) {
 
 ## ------------------------------------------------------------ ##
 
-nerd.df = nerd.combine(path.nerd)
-roto.df = roto.combine(path.roto.hitters,
-                       TRUE)
-swish.df = swish.combine(path.swish)
-saber.df = saber.combine(path.saber)
-
-combined.df = merge(roto.df, nerd.df,
-                    by = c("Name", "Date"),
-                    all.x = T)
-
-combined.df = merge(combined.df, saber.df,
-                    by = c("Name", "Date"),
-                    all.x = T)
-
-combined.df = merge(combined.df, swish.df,
-                    by = c("Name", "Date"),
-                    all.x = T)
-
-combined.df = combined.df[-which(is.na(combined.df$Actual)),]
-
-
-## Additional "standard error" feature
-
-## ------------------------------------------------------------ ##
-
-
-combined.df$Standard.Error = combined.df$dk_95_percentile - combined.df$Saber.Projection
-
-
-## Dataset for modeling
-
-## ------------------------------------------------------------ ##
-
-
-model.df = subset(combined.df,
-                  select = -c(Team,
-                              Position, Opponent,
-                              Teams.Playing, Order))
-
-model.df$Date = as.Date(model.df$Date)
-model.df = model.df[model.df$Date > as.Date("2018-05-30"),]
-model.df$Date = as.numeric(model.df$Date - min(model.df$Date))
-
-model.df$Salary = model.df$Salary/10000
-model.df$SalDiff = model.df$SalDiff/1000
-model.df$RankDiff = model.df$RankDiff/100
-
-train.df = model.df[model.df$Date < 60,]
-test.df = model.df[model.df$Date >= 60,]
+create.dataset = function(path.nerd, 
+                          path.roto,
+                          path.swish,
+                          path.saber,
+                          start.date,
+                          end.date,
+                          is.hitter) {
+  nerd.df = nerd.combine(path.nerd)
+  roto.df = roto.combine(path.roto,
+                         is.hitter)
+  swish.df = swish.combine(path.swish)
+  saber.df = saber.combine(path.saber)
+  
+  combined.df = merge(roto.df, nerd.df,
+                      by = c("Name", "Date"),
+                      all.x = T)
+  
+  combined.df = merge(combined.df, saber.df,
+                      by = c("Name", "Date"),
+                      all.x = T)
+  
+  combined.df = merge(combined.df, swish.df,
+                      by = c("Name", "Date"),
+                      all.x = T)
+  
+  combined.df = combined.df[-which(is.na(combined.df$Actual)),]
+  combined.df$Standard.Error = combined.df$dk_95_percentile - combined.df$Saber.Projection
+  
+  model.df = subset(combined.df,
+                    select = -c(Team,
+                                Position, Opponent,
+                                Teams.Playing))
+  
+  if(is.hitter) {
+    model.df = subset(model.df, select = -c(Order))
+  }
+  
+  model.df$Date = as.Date(model.df$Date)
+  model.df = model.df[model.df$Date >= as.Date(start.date) & model.df$Date <= as.Date(end.date),]
+  model.df$Date = as.numeric(model.df$Date - min(model.df$Date))
+  
+  model.df$Salary = model.df$Salary/10000
+  model.df$SalDiff = model.df$SalDiff/1000
+  model.df$RankDiff = model.df$RankDiff/100
+  
+  return(model.df)
+}
 
 
 ## Multiple imputation on testing and training data
@@ -311,113 +293,39 @@ test.df = model.df[model.df$Date >= 60,]
 ## ------------------------------------------------------------ ##
 
 
-temp.data.train = mice(train.df, method = "pmm")
-temp.data.test = mice(test.df, method = "pmm")
-train.df = mice::complete(temp.data.train)
-test.df = mice::complete(temp.data.test)
-
-
-## Forward selection and Cook's distance filtering
-
-## ------------------------------------------------------------ ##
-
-
-null = lm(Actual ~ 1, data = train.df)
-full = lm(Actual ~ ., data = train.df)
-
-both.select = step(full, 
-                   scope = list(lower = null, upper = full), 
-                   direction = "both")
-
-forward.select = step(null, 
-                      scope = list(lower = null, upper = full), 
-                      direction = "forward")
-
-final.formula = "Actual ~ Salary + SalDiff + Total + ISO + SLG + AB.1 + ISO.1 + 
-    SLG.1 + AVG.2 + wOBA.2 + AB.3 + AVG.3 + OBP.3 + K..3 + Last.5.Avg + 
-    Season.Ceiling + Saber.Projection + CS + Swish.Projection"
-
-forward.formula = "Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total + 
-    CS + ISO + K..3 + Season.Ceiling + SalDiff + Salary"
-
-lm.both = lm(as.formula(final.formula), data = train.df)
-lm.fwd = lm(as.formula(forward.formula), data = train.df)
-
-
-## First layer models
-
-## ------------------------------------------------------------ ##
-
-
-# Generalized additive model
-
-train.df$Name = as.factor(train.df$Name)
-
-
-mlb.gam = gam(Actual ~ s(Swish.Projection, by = Away) + s(Last.5.Avg) + s(Saber.Projection, by = Away) + 
-                Total + CS + ISO + s(K..3) + Season.Ceiling + SalDiff + Salary + s(Date, bs = "re")
-                te(Season.Ceiling, Saber.Projection) + te(SalDiff, Last.5.Avg),
-              data = train.df,
-              method = "REML")
-
-# Linear mixed effects model
-
-mlb.lme = lme(Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total + 
-                 CS + ISO + K..3 + Season.Ceiling + SalDiff + Salary, 
-              random = ~ 1 | Name,
-               data = train.df)
-
-mse = function(df, projected) {
-  for(i in 1:length(projected)) {
-    if(is.na(projected[i])) {
-      projected[i] = df$Swish.Projection[i]
-    }
-  }
-  diff = df$Actual - projected
-  diff.sq = diff^2
-  return(sum(diff.sq))
+impute.data = function(df) {
+  temp = mice(df, method = "pmm")
+  df = mice::complete(temp)
+  return(df)
 }
 
 
-training.set.a = which(train.df$Date <= 45)
-training.set.b = which(train.df$Date <= 50)
-training.set.c = which(train.df$Date <= 55)
+## Return predictions
 
-holdout.set.a = which(train.df$Date > 45 & train.df$Date < 50)
-holdout.set.b = which(train.df$Date > 50 & train.df$Date < 55)
-holdout.set.c = which(train.df$Date > 55 & train.df$Date < 60)
+## ------------------------------------------------------------ ##
 
 
-fit.on = list(rs1 = training.set.a,
-              rs2 = training.set.b,
-              rs3 = training.set.c)
+gbm.predict.hitter = function(train.df, test.df) {
+  y = train.df$Actual
+  X = train.df %>% select(Salary, SalDiff, Total, ISO, SLG, AB.1, ISO.1, SLG.1, AVG.2,
+                          wOBA.2, AB.3, AVG.3, OBP.3, K..3, Last.5.Avg, Season.Ceiling, 
+                          Saber.Projection, CS, Swish.Projection, Name) %>% 
+    mutate_if(is.character, as.factor)
+  
+  test = test.df %>% select(Salary, SalDiff, Total, ISO, SLG, AB.1, ISO.1, SLG.1, AVG.2,
+                            wOBA.2, AB.3, AVG.3, OBP.3, K..3, Last.5.Avg, Season.Ceiling, 
+                            Saber.Projection, CS, Swish.Projection, Name) %>% 
+    mutate_if(is.character, as.factor)
+  
+  
+  out = metb(y=y, X=X, id="Name", 
+             n.trees=50,
+             shrinkage=.1, 
+             interaction.depth=3,
+             num_threads=8,
+             save.mods = T)
+  
+  predictions = predict(out, test, id = "Name")
+  return(predictions[[1]])
+}
 
-pred.on = list(rs1 = holdout.set.a,
-               rs2 = holdout.set.b,
-               rs3 = holdout.set.c)
-
-
-control = trainControl(method = "cv",
-                       index = fit.on,
-                       indexOut = pred.on,
-                       verboseIter = T,
-                       summaryFunction = defaultSummary)
-
-labelName = "Actual"
-predictors = c("Salary", "SalDiff", "Total", "ISO", "SLG", "AB.1", "ISO.1",
-  "SLG.1", "AVG.2", "wOBA.2", "AB.3", "AVG.3", "OBP.3", "K..3", "Last.5.Avg",
-  "Season.Ceiling", "Saber.Projection", "CS", "Swish.Projection", "Name")
-
-
-model.gbm = train(as.matrix(train.df[,predictors]),
-                  train.df[,labelName],
-                  method = "gbm",
-                  trControl = control)
-
-mixed.boost = metb(as.matrix(train.df[,predictors]),
-                   train.df[,labelName],
-                   id = "Name",
-                   n.trees = 50,
-                   interaction.depth = 3,
-                   shrinkage = 0.1,
-                   n.minobsinnode = 10)

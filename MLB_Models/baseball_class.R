@@ -20,7 +20,7 @@ library(caretEnsemble)
 library(mice)
 library(mgcv)
 library(nlme)
-
+library(mvtboost)
 
 ## Paths to folders containing scraped data
 
@@ -257,7 +257,8 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
                             shortstops, catchers,
                             outfielders, num.teams, hitters.teams,
                             num.games, hitters.games, players.games,
-                            salary.cap, pitchers.opponents, consecutive.matrix) {
+                            salary.cap, pitchers.opponents, consecutive.matrix,
+                            abs.weight, rel.weight, multi) {
   
   model = list()
   
@@ -401,7 +402,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   qc1 = list()
   qc1$Qc = sparse.consecutive.matrix
   qc1$sense = ">"
-  qc1$rhs = 24
+  qc1$rhs = 16
 
   model$quadcon = list(qc1)
   
@@ -421,10 +422,31 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   
   model$A = Matrix(constraints, sparse = T)
   
-  # Model objective
-  model$obj = append(hitters[,"Projection"], pitchers[,"Projection"])
-  model$obj = append(model$obj, rep(0, num.teams + num.games))
+  obj.a = append(hitters[,"Projection"], pitchers[,"Projection"])
+  obj.a = append(obj.a, rep(0, num.teams + num.games))
   
+  obj.b = append(hitters[,"Sigma"], pitchers[,"Sigma"])
+  obj.b = append(obj.b, rep(0, num.teams + num.games))
+  
+  Set = list(obj.a, obj.b)
+  SetObjPriority = c(2,1)
+  SetObjWeight = c(1.0, abs.weight)
+  
+  if(!multi) {
+    # Model objective
+    model$obj = obj.a
+  } else {
+    model$multiobj  = list()
+    for (m in 1:2) {
+      model$multiobj[[m]] = list()
+      model$multiobj[[m]]$objn = Set[[m]]
+      model$multiobj[[m]]$priority = SetObjPriority[m]
+      model$multiobj[[m]]$weight   = SetObjWeight[m]
+      model$multiobj[[m]]$abstol   = m
+      model$multiobj[[m]]$reltol   = rel.weight
+      model$multiobj[[m]]$con      = 0.0
+    }
+  }
   params = list()
   params$LogToConsole = 0
   result = gurobi(model, params)
@@ -589,7 +611,8 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[4]], hitters.list[[5]],
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, players.games,
-                        salary.cap, pitchers.opponents, consecutive.matrix)
+                        salary.cap, pitchers.opponents, consecutive.matrix,
+                        abs.weight, rel.weight, TRUE)
   lineups = matrix(lineups, nrow = 1)
   
   if(num.lineups > 1) {
@@ -600,7 +623,8 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                            hitters.list[[4]], hitters.list[[5]],
                            hitters.list[[6]], num.teams, hitters.teams,
                            num.games, hitters.games, players.games,
-                           salary.cap, pitchers.opponents, consecutive.matrix)
+                           salary.cap, pitchers.opponents, consecutive.matrix,
+                           abs.weight, rel.weight, TRUE)
       lineups = rbind(lineups, lineup)
     }
   }
@@ -667,27 +691,6 @@ get.scores = function(lineups, hitters, pitchers) {
 }
 
 
-
-## Returns the optimal lineup performance 
-
-## ------------------------------------------------------------ ##
-
-
-get.optimum = function(df, hitters.actual, pitchers.actual) {
-  lineup = df
-  chosen.hitters = lineup[1:nrow(hitters.actual)]
-  chosen.pitchers = lineup[(nrow(hitters.actual) + 1):length(lineup)]
-  
-  hitters.indices = which(chosen.hitters == 1)
-  pitchers.indices = which(chosen.pitchers == 1)
-  
-  points = sum(hitters.actual[hitters.indices, "Projection"]) +
-    sum(pitchers.actual[pitchers.indices, "Projection"])
-  
-  return(points)
-}
-
-
 ## Backtesting on historical Draftkings data
 
 ## ------------------------------------------------------------ ##
@@ -719,23 +722,27 @@ backtest = function(overlaps, salary.cap,
         hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
         pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
         
-        df = create_lineups(num.lineups, overlap, 
-                            stacked.lineup.a, salary.cap, 
-                            hitters.proj, pitchers.proj,
-                            0.1, 0.01)
+        weights.a = c(0.05, 0.1, 0.2, 0.5)
+        weights.b = c(0, 0.01, 0.02, 0.05, 0.1)
         
-        scores = get.scores(df, hitters.proj, pitchers.proj)
+        for(first.weight in weights.a) {
+          for(second.weight in weights.b) {
+            df = create_lineups(num.lineups, overlap, 
+                                stacked.lineup.a, salary.cap, 
+                                hitters.proj, pitchers.proj,
+                                first.weight, second.weight)
+            scores = get.scores(df, hitters.proj, pitchers.proj)
+            max.scores = list.append(max.scores, name = max(scores))
+            names(max.scores)[which(names(max.scores) == "name")] = 
+              paste(toString(first.weight), toString(second.weight), sep = "//")
+          }
+        }
+        
         
         # file_name = paste("modelb", toString(overlap), sep = "")
         # setwd(output)
         # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
         
-        max.scores = list.append(max.scores, name = max(scores))
-        
-        print(max(scores))
-
-        names(max.scores)[which(names(max.scores) == "name")] = 
-          paste("overlap", toString(overlap), sep = ".")
       }, error = function(e) {})
     }
   }
