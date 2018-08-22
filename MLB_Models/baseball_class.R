@@ -725,18 +725,21 @@ backtest = function(overlaps, salary.cap,
                     path.pitchers.proj, path.players.actual,
                     path.saber) {
   max.scores = list()
-  saber.files = list.files(path.saber)[c(384, 395, 406, 417)]
+  saber.files = list.files(path.saber)[384:476]
   dates = lapply(saber.files, function(x) {
     unlist(strsplit(gsub("[A-z\\.]", "", x), split = " "))[1]
   })
+  
   for(overlap in overlaps) {
     for(d in 1:length(dates)) {
       tryCatch({
         date = dates[[d]]
+        saber.file = paste(path.saber, saber.files[[d]], sep = "/")
+        if(dim(read.csv(saber.file))[1] < 150) {
+          stop("Dataset too small!")
+        }
         path.hitters.proj.temp = gsub.custom(path.hitters.proj, date)
         path.pitchers.proj.temp = gsub.custom(path.pitchers.proj, date)
-        
-        saber.file = paste(path.saber, saber.files[[d]], sep = "/")
         
         hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
         pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
@@ -744,10 +747,11 @@ backtest = function(overlaps, salary.cap,
                             stacked.lineup.a, salary.cap, 
                             hitters.proj, pitchers.proj,
                             1, 0, FALSE)
+        print("Lineups created!")
         scores = get.scores(df, hitters.proj, pitchers.proj)
         max.scores = list.append(max.scores, name = max(scores))
         names(max.scores)[which(names(max.scores) == "name")] = 
-          paste(toString(overlap), toString(d), sep = "//")
+          paste(toString(overlap), toString(date), sep = "//")
       }, error = function(e) {})
     }
   }

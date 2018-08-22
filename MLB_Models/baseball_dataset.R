@@ -352,7 +352,8 @@ create.dataset.b = function(saber.df,
 
 
 impute.data = function(df) {
-  temp = mice(df, method = "pmm")
+  print("Imputing data...")
+  temp = mice(df, method = "pmm", print = F)
   df = mice::complete(temp)
   return(df)
 }
@@ -381,7 +382,7 @@ gbm.predict.hitter = function(train.df, test.df) {
                             Saber.Projection, CS, Name) %>% 
     mutate_if(is.character, as.factor)
   
-  
+  print("Generating hitter predictions...")
   out = metb(y=y, X=X, id="Name", 
              n.trees=50,
              shrinkage=.1, 
@@ -406,6 +407,7 @@ lme.predict.pitcher = function(train.df, test.df) {
                   Away + Season.Avg + Season.Ceiling + Saber.Projection, 
                 random = ~ 1 | Name,
                 data = train.df)
+  print("Generating pitcher predictions...")
   predictions = predict(mlb.lme, test.df)
   for(i in 1:length(predictions)) {
     if(is.na(predictions[i])) {
