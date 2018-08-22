@@ -669,7 +669,10 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
                    c(pitchers[pitchers.indices, "Name"]))
     
     names = append(names,
-                   c(hitters[hitters.indices, "Position"]))
+                   c(hitters[hitters.indices, "Team"]))
+    
+    names = append(names,
+                   c(pitchers[pitchers.indices, "Team"]))
     
     write.table(matrix(names, nrow = 1),
                 path.output,
