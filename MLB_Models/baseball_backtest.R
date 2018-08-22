@@ -1,5 +1,8 @@
-source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
+## Backtest on previous Draftkings contests. backtest(...) returns of a list of
+## historical scores, which can be compared to actual winning scores on 
+## Rotogrinders' ResultsDB webpage.
 
+source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 
 # Overlaps to test
 overlaps = 5:6

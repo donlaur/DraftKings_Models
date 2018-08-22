@@ -1,4 +1,15 @@
-source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
+## Change these: paths to folders containing data and to output 
+
+## ------------------------------------------------------------ ##
+
+
+path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters"
+path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers"
+path.saber = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Saber_Sim"
+path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Swish_Analytics"
+path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
+output = "C:/Users/Ming/Documents/Fantasy_Models/output"
+path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_consecutive.csv"
 
 
 ## Outputs Rotogrinders projection dataframe
@@ -36,9 +47,10 @@ clean.rotogrinders.pitchers = function(roto.path) {
   df = read.csv(roto.path,
                 stringsAsFactors = F)
   df$Away = as.factor(ifelse(grepl("@", df$Opp), "Away", "Home"))
+  df$Hand = as.factor(df$Hand)
   df = subset(df, select = -c( Rank, Average, pOWN.,
-                               ContR, X, X.1, X.2, X.3, X.4,
-                               X.5, X.6, X.7))
+                               ContR, X, X.1, X.2, X.3,
+                               X.4, X.5, X.6, X.7))
   names(df)[which(names(df) == "Opp")] = "Opponent"
   names(df)[which(names(df) == "Points")] = "Roto.Projection"
   df$Salary = gsub(c("K"), "", df$Salary)
@@ -239,12 +251,9 @@ nerd.combine = function(path.nerd) {
 
 ## ------------------------------------------------------------ ##
 
-create.dataset = function(path.nerd, 
-                          path.roto,
-                          path.swish,
-                          path.saber,
-                          start.date,
-                          end.date,
+create.dataset = function(path.nerd, path.roto,
+                          path.swish, path.saber,
+                          start.date, end.date,
                           is.hitter) {
   nerd.df = nerd.combine(path.nerd)
   roto.df = roto.combine(path.roto,
@@ -277,7 +286,7 @@ create.dataset = function(path.nerd,
   }
   
   model.df$Date = as.Date(model.df$Date)
-  model.df = model.df[model.df$Date >= as.Date(start.date) & model.df$Date <= as.Date(end.date),]
+  model.df = model.df[model.df$Date >= as.Date(start.date) & model.df$Date < as.Date(end.date),]
   model.df$Date = as.numeric(model.df$Date - min(model.df$Date))
   
   model.df$Salary = model.df$Salary/10000
@@ -287,6 +296,55 @@ create.dataset = function(path.nerd,
   return(model.df)
 }
 
+create.dataset.b = function(saber.df,
+                            path.nerd, 
+                            path.roto,
+                            path.swish,
+                            start.date,
+                            date,
+                            is.hitter) {
+  nerd.path = which(grepl(date, list.files(path.nerd)))
+  nerd.path = list.files(path.nerd)[nerd.path]
+  
+  roto.path = which(grepl(date, list.files(path.roto)))
+  roto.path = list.files(path.roto)[roto.path]
+  
+  swish.path = which(grepl(date, list.files(path.swish)))
+  swish.path = list.files(path.swish)[swish.path]
+  
+  swish.df = clean.swish(paste(path.swish, swish.path, sep = "/"))
+  nerd.df = clean.nerd(paste(path.nerd, nerd.path, sep = "/"))
+  roto.df = data.frame()
+  
+  if(is.hitter) {
+    roto.df = clean.rotogrinders.hitters(paste(path.roto, roto.path, sep = "/"))
+  } else {
+    roto.df = clean.rotogrinders.pitchers(paste(path.roto, roto.path, sep = "/"))
+  }
+
+  combined.df = merge(saber.df, nerd.df,
+                      all.x = T,
+                      by = "Name")
+  combined.df = merge(combined.df, swish.df,
+                      all.x = T,
+                      by = "Name")
+  combined.df = merge(combined.df, roto.df,
+                      all.x = T,
+                      by = "Name")
+  
+  combined.df = combined.df[,colSums(is.na(combined.df)) < nrow(combined.df)]
+  combined.df = subset(combined.df,
+                       select = -c(Team, Position,
+                                   Opponent, Teams.Playing))
+  
+  combined.df$Date = as.numeric(as.Date(date) - as.Date(start.date))
+  
+  combined.df$Salary = combined.df$Salary/10000
+  combined.df$SalDiff = combined.df$SalDiff/1000
+  combined.df$RankDiff = combined.df$RankDiff/100
+  
+  return(combined.df)
+}
 
 ## Multiple imputation on testing and training data
 
@@ -305,16 +363,22 @@ impute.data = function(df) {
 ## ------------------------------------------------------------ ##
 
 
+to.formula = function(vars) {
+  predictors = reduce(vars, 
+                      function(x,y) paste(x,y,sep="+"))
+  return(paste("Actual ~ ", predictors, sep = ""))
+}
+
 gbm.predict.hitter = function(train.df, test.df) {
   y = train.df$Actual
   X = train.df %>% select(Salary, SalDiff, Total, ISO, SLG, AB.1, ISO.1, SLG.1, AVG.2,
                           wOBA.2, AB.3, AVG.3, OBP.3, K..3, Last.5.Avg, Season.Ceiling, 
-                          Saber.Projection, CS, Swish.Projection, Name) %>% 
+                          Saber.Projection, CS, Name) %>% 
     mutate_if(is.character, as.factor)
   
   test = test.df %>% select(Salary, SalDiff, Total, ISO, SLG, AB.1, ISO.1, SLG.1, AVG.2,
                             wOBA.2, AB.3, AVG.3, OBP.3, K..3, Last.5.Avg, Season.Ceiling, 
-                            Saber.Projection, CS, Swish.Projection, Name) %>% 
+                            Saber.Projection, CS, Name) %>% 
     mutate_if(is.character, as.factor)
   
   
@@ -326,6 +390,27 @@ gbm.predict.hitter = function(train.df, test.df) {
              save.mods = T)
   
   predictions = predict(out, test, id = "Name")
+  for(i in 1:length(predictions)) {
+    if(is.na(predictions[i])) {
+      predictions[i] = test.df$Saber.Projection[i]
+    }
+  }
   return(predictions[[1]])
 }
 
+
+lme.predict.pitcher = function(train.df, test.df) {
+  mlb.lme = lme(Actual ~ Salary + LISO + RwOBA + xFIP + xWOBA + Pt...K + xL.1 + 
+                  LwOBA.1 + LISO.1 + RISO.1 + GP.1 + xFIP.1 + LwOBA.2 + RK.9.2 + 
+                  xWOBA.2 + xK.9.2 + LwOBA.3 + RwOBA.3 + RK.9.3 + SIERA.3 + 
+                  Away + Season.Avg + Season.Ceiling + Saber.Projection, 
+                random = ~ 1 | Name,
+                data = train.df)
+  predictions = predict(mlb.lme, test.df)
+  for(i in 1:length(predictions)) {
+    if(is.na(predictions[i])) {
+      predictions[i] = test.df$Saber.Projection[i]
+    }
+  }
+  return(predictions)
+}

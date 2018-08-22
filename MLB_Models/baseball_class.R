@@ -1,3 +1,5 @@
+source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_dataset.R")
+
 ## Required libraries
 
 ## ------------------------------------------------------------ ##
@@ -22,42 +24,56 @@ library(mgcv)
 library(nlme)
 library(mvtboost)
 
-## Paths to folders containing scraped data
-
-## ------------------------------------------------------------ ##
-
-
-path.roto.hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters"
-path.roto.pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers"
-path.saber = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Saber_Sim"
-path.swish = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Swish_Analytics"
-path.nerd = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Fantasy_Nerd"
-output = "C:/Users/Ming/Documents/Fantasy_Models/output"
-path.output = "C:/Users/Ming/Documents/Fantasy_Models/output/MLB_consecutive.csv"
-
 
 ## Cleans Rotogrinders CSV files
 
 ## ------------------------------------------------------------ ##
 
 
-hitter.names = function(path.saber.file) {
+saber.names = function(path.saber.file, is.hitter) {
   saber.df = read.csv(path.saber.file,
                       stringsAsFactors = F)
-  saber.df = saber.df[saber.df$Position != "P",]
+  if(is.hitter) {
+    saber.df = saber.df[saber.df$Position != "P",]
+  } else {
+    saber.df = saber.df[saber.df$Position == "P",]
+  }
+  saber.df = subset(saber.df, 
+              select = c(Name, Projection, Actual,
+                         dk_95_percentile, PA, Singles,
+                         Doubles, Triples, HR, R, RBI,
+                         SB, CS, dk_50_percentile))
+  names(saber.df)[which(names(saber.df) == "Projection")] = "Saber.Projection"
+  
+  start.date = "2018-05-01"
+  end.date = unlist(strsplit(gsub("[A-z\\.:/]", "", path.saber.file), split = " "))[1]
+  
+  if(is.hitter) {
+    train.df = create.dataset(path.nerd, path.roto.hitters,
+                              path.swish, path.saber,
+                              start.date, end.date, TRUE)
+    train.df = impute.data(train.df)
+    saber.df = create.dataset.b(saber.df, path.nerd, 
+                                path.roto.hitters, path.swish,
+                                start.date, end.date, TRUE)
+    saber.df = impute.data(saber.df)
+    saber.df$Custom.Projection = gbm.predict.hitter(train.df, saber.df)
+  } else {
+    train.df = create.dataset(path.nerd, path.roto.pitchers,
+                              path.swish, path.saber,
+                              start.date, end.date, FALSE)
+    train.df = impute.data(train.df)
+    saber.df = create.dataset.b(saber.df, path.nerd, 
+                                path.roto.pitchers, path.swish,
+                                start.date, end.date, FALSE)
+    saber.df = impute.data(saber.df)
+    saber.df$Custom.Projection = lme.predict.pitcher(train.df, saber.df)  
+  }
   saber.df = subset(saber.df,
-                    select = c(Name, Actual, Projection, dk_95_percentile))
-  saber.df$Sigma = saber.df$dk_95_percentile - saber.df$Projection
-  return(subset(saber.df, select = c(Name, Actual, Projection, Sigma)))
-}
-
-pitcher.names = function(path.saber.file) {
-  saber.df = read.csv(path.saber.file,
-                      stringsAsFactors = F)
-  saber.df = saber.df[saber.df$Position == "P",]
-  saber.df = subset(saber.df,
-                    select = c(Name, Actual, Projection, dk_95_percentile))
-  saber.df$Sigma = saber.df$dk_95_percentile - saber.df$Projection
+                    select = c(Name, Actual, Custom.Projection, 
+                               dk_95_percentile, dk_50_percentile))
+  saber.df$Sigma = saber.df$dk_95_percentile - saber.df$dk_50_percentile
+  names(saber.df)[which(names(saber.df) == "Custom.Projection")] = "Projection"
   return(subset(saber.df, select = c(Name, Actual, Projection, Sigma)))
 }
 
@@ -104,9 +120,11 @@ clean.rotogrinders = function(roto.path, is.hitter) {
 
 merge.rotogrinders = function(roto.path, path.saber.file, is.hitter) {
   roto.file = clean.rotogrinders(roto.path, is.hitter)
-  saber.file = hitter.names(path.saber.file)
-  if(!is.hitter) {
-    saber.file = pitcher.names(path.saber.file)
+  saber.file = data.frame()
+  if(is.hitter) {
+    saber.file = saber.names(path.saber.file, TRUE)
+  } else {
+    saber.file = saber.names(path.saber.file, FALSE)
   }
   merged.file = merge(saber.file,
                       roto.file,
@@ -402,7 +420,7 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
   qc1 = list()
   qc1$Qc = sparse.consecutive.matrix
   qc1$sense = ">"
-  qc1$rhs = 16
+  qc1$rhs = 20
 
   model$quadcon = list(qc1)
   
@@ -455,7 +473,6 @@ stacked.lineup.a = function(hitters, pitchers, lineups, num.overlap,
 }
 
 
-
 ## Create desired number of lineups with desired model
 
 ## ------------------------------------------------------------ ##
@@ -476,7 +493,7 @@ is.consecutive = function(hitters, i, j) {
 }
 
 create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
-                          hitters, pitchers, abs.weight, rel.weight) {
+                          hitters, pitchers, abs.weight, rel.weight, is.multi) {
   
   # Number of hitters
   num.hitters = nrow(hitters)
@@ -612,7 +629,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                         hitters.list[[6]], num.teams, hitters.teams,
                         num.games, hitters.games, players.games,
                         salary.cap, pitchers.opponents, consecutive.matrix,
-                        abs.weight, rel.weight, TRUE)
+                        abs.weight, rel.weight, is.multi)
   lineups = matrix(lineups, nrow = 1)
   
   if(num.lineups > 1) {
@@ -624,7 +641,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, salary.cap,
                            hitters.list[[6]], num.teams, hitters.teams,
                            num.games, hitters.games, players.games,
                            salary.cap, pitchers.opponents, consecutive.matrix,
-                           abs.weight, rel.weight, TRUE)
+                           abs.weight, rel.weight, is.multi)
       lineups = rbind(lineups, lineup)
     }
   }
@@ -672,7 +689,6 @@ lineups.to.csv = function(lineups, hitters, pitchers, path.output) {
 
 
 get.scores = function(lineups, hitters, pitchers) {
-  # Points vector
   points = rep(0, nrow(lineups))
   
   for(i in 1:nrow(lineups)) {
@@ -706,7 +722,7 @@ backtest = function(overlaps, salary.cap,
                     path.pitchers.proj, path.players.actual,
                     path.saber) {
   max.scores = list()
-  saber.files = list.files(path.saber)[c(200, 220, 280, 320, 340, 380)]
+  saber.files = list.files(path.saber)[c(384, 395, 406, 417)]
   dates = lapply(saber.files, function(x) {
     unlist(strsplit(gsub("[A-z\\.]", "", x), split = " "))[1]
   })
@@ -721,28 +737,14 @@ backtest = function(overlaps, salary.cap,
         
         hitters.proj = merge.rotogrinders(path.hitters.proj.temp, saber.file, TRUE)
         pitchers.proj = merge.rotogrinders(path.pitchers.proj.temp, saber.file, FALSE)
-        
-        weights.a = c(0.05, 0.1, 0.2, 0.5)
-        weights.b = c(0, 0.01, 0.02, 0.05, 0.1)
-        
-        for(first.weight in weights.a) {
-          for(second.weight in weights.b) {
-            df = create_lineups(num.lineups, overlap, 
-                                stacked.lineup.a, salary.cap, 
-                                hitters.proj, pitchers.proj,
-                                first.weight, second.weight)
-            scores = get.scores(df, hitters.proj, pitchers.proj)
-            max.scores = list.append(max.scores, name = max(scores))
-            names(max.scores)[which(names(max.scores) == "name")] = 
-              paste(toString(first.weight), toString(second.weight), sep = "//")
-          }
-        }
-        
-        
-        # file_name = paste("modelb", toString(overlap), sep = "")
-        # setwd(output)
-        # write(max(scores), file = paste(file_name, ".txt", sep = ""), append = T)
-        
+        df = create_lineups(num.lineups, overlap, 
+                            stacked.lineup.a, salary.cap, 
+                            hitters.proj, pitchers.proj,
+                            1, 0, FALSE)
+        scores = get.scores(df, hitters.proj, pitchers.proj)
+        max.scores = list.append(max.scores, name = max(scores))
+        names(max.scores)[which(names(max.scores) == "name")] = 
+          paste(toString(overlap), toString(d), sep = "//")
       }, error = function(e) {})
     }
   }

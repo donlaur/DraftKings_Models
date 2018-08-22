@@ -1,17 +1,33 @@
+## Playground for testing hitter models
+
 source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_dataset.R")
 
-## Forward selection
+
+## Creating the training dataset
 
 ## ------------------------------------------------------------ ##
+
 
 start.date = "2018-05-01"
 end.date = "2018-07-31"
 
 train.df = create.dataset(path.nerd, path.roto.hitters,
                           path.swish, path.saber,
-                          start.date, end.date)
+                          start.date, end.date, TRUE)
 train.df = impute.data(train.df)
+
+test.df = create.dataset(path.nerd, path.roto.hitters,
+                         path.swish, path.saber,
+                         "2018-08-01", "2018-08-04", TRUE)
+
+test.df = impute.data(test.df)
+
+
+## Feature selection
+
+## ------------------------------------------------------------ ##
+
 
 null = lm(Actual ~ 1, data = train.df)
 full = lm(Actual ~ ., data = train.df)
@@ -37,7 +53,7 @@ lm.fwd = lm(as.formula(forward.formula), data = train.df)
 mse = function(df, projected) {
   for(i in 1:length(projected)) {
     if(is.na(projected[i])) {
-      projected[i] = df$Swish.Projection[i]
+      projected[i] = df$Saber.Projection[i]
     }
   }
   diff = df$Actual - projected
@@ -67,13 +83,15 @@ mlb.lme = lme(Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total 
               random = ~ 1 | Name,
               data = train.df)
 
-# Mixed effects treee
+# Mixed effects tree
 
 mlb.reem = REEMtree(Actual ~ Swish.Projection + Last.5.Avg + Saber.Projection + Total + 
                       CS + ISO + K..3 + Season.Ceiling + SalDiff + Salary,
                     data = train.df,
                     random = ~1 | Name)
 
+
+# Mixed effects gradient boosted tree
 
 y = train.df$Actual
 X = train.df %>% select(Salary, SalDiff, Total, ISO, SLG, AB.1, ISO.1, SLG.1, AVG.2,
