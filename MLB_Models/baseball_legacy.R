@@ -1,6 +1,4 @@
-## This file contains code which cleans Draftkings, Rotogrinders,
-## and ESPN CSV files. These functionalities are stored here because
-## they are currently not being used in the algorithm.
+## This file contains legacy code (in case it once again becomes useful).
 ##
 ## ------------------------------------------------------------ ##
 
@@ -503,3 +501,110 @@ get.optimum = function(df, hitters.actual, pitchers.actual) {
   
   return(points)
 }
+
+
+## Cleans Rotoguru CSV files for backtesting
+
+## ------------------------------------------------------------ ##
+
+
+clean.rotoguru = function(path.roto, 
+                          hitters.proj, 
+                          pitchers.proj) {
+  df = read.csv(path.roto, 
+                stringsAsFactors = F)[1:5]
+  names(df) = c("Name",
+                "Projection",
+                "Salary",
+                "Team",
+                "Opponent")
+  df$Name = gsub("\\^", "", df$Name)
+  df$Name = gsub("[0-9]+", "", df$Name)
+  
+  temp.pitchers = lapply(df$Name, function(x) {
+    unlist(strsplit(x, split = " "))
+  })
+  
+  temp.pitchers = lapply(temp.pitchers, function(x) {
+    x[x != ""]
+  })
+  
+  df$Name = lapply(temp.pitchers, function(x) {
+    paste(x, collapse = " ")
+  })
+  
+  df$Salary        = gsub(",", "", df$Salary)
+  df$Salary        = suppressWarnings(as.numeric(gsub("\\$", "", df$Salary))) 
+  df$Team          = gsub(" ", "", df$Team)
+  df$Opponent      = gsub("v ", "", df$Opponent)
+  df$Opponent      = gsub("@ ", "", df$Opponent)
+  df$Opponent      = toupper(df$Opponent)
+  df$Opponent      = gsub(" ", "", df$Opponent)
+  df$Teams.Playing = paste(df$Team, df$Opponent, sep = "@")
+  df$Position      = NA
+  split            = which(df[,1] == "Hitters")
+  pitchers.df      = df[1:(split-1),]
+  hitters.df       = df[(split+1):nrow(df),]
+  
+  for(i in 1:nrow(pitchers.df)) {
+    name = unlist(strsplit(unlist(pitchers.df[i,1]), split = " "))
+    row = which(grepl(name[1], pitchers.proj[,1]) & grepl(name[2], pitchers.proj[,1]))
+    if(length(row) == 0) {
+      name = unlist(pitchers.df[i,1])
+      for(j in 1:nrow(pitchers.proj)) {
+        pitcher.name = unlist(strsplit(pitchers.proj[j,1], split = " "))
+        if(all(sapply(pitcher.name, function(x) {
+          grepl(x, name, ignore.case = T) 
+        }))) {
+          row = j
+        }
+      }
+    }
+    if(length(row) == 0) {
+      name = unlist(strsplit(unlist(pitchers.df[i,1]), split = " "))
+      team = substring(pitchers.df[i,"Team"], 1, 1)
+      row  = which(grepl(team, pitchers.proj[,"Team"]) & 
+                     grepl(name[2], pitchers.proj[,1]) &
+                     grepl(substring(name[1], 1, 1), pitchers.proj[,1]))
+    }
+    tryCatch ({
+      pitchers.df[i,"Salary"]   = pitchers.proj[row, "Salary"]
+      pitchers.df[i,"Position"] = pitchers.proj[row, "Position"]
+    }, error = function(e) {})
+  }
+  
+  for(i in 1:nrow(hitters.df)) {
+    name = unlist(strsplit(unlist(hitters.df[i,1]), split = " "))
+    row  = which(grepl(name[1], hitters.proj[,1]) & grepl(name[2], hitters.proj[,1]))
+    if(length(row) == 0) {
+      name = unlist(hitters.df[i,1])
+      for(j in 1:nrow(hitters.proj)) {
+        hitter.name = unlist(strsplit(hitters.proj[j,1], split = " "))
+        if(all(sapply(hitter.name, function(x) {
+          grepl(x, name, ignore.case = T) 
+        }))) {
+          row = j
+        }
+      }
+    }
+    if(length(row) == 0) {
+      name = unlist(strsplit(unlist(hitters.df[i,1]), split = " "))
+      team = substring(hitters.df[i,"Team"], 1, 1)
+      row  = which(grepl(team, hitters.proj[,"Team"]) & 
+                     grepl(name[2], hitters.proj[,1]) &
+                     grepl(substring(name[1], 1, 1), hitters.proj[,1]))
+    }
+    tryCatch ({
+      hitters.df[i,"Salary"] = hitters.proj[row, "Salary"]
+      hitters.df[i,"Position"] = hitters.proj[row, "Position"]
+    }, error = function(e) {})
+  }
+  pitchers.df            = na.omit(pitchers.df)
+  hitters.df             = na.omit(hitters.df)
+  pitchers.df$Projection = as.numeric(gsub(" ", "", pitchers.df$Projection))
+  hitters.df$Projection  = as.numeric(gsub(" ", "", hitters.df$Projection))
+  
+  return(list(pitchers = pitchers.df, 
+              hitters = hitters.df))
+}
+

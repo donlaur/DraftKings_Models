@@ -36,10 +36,31 @@ both.select = step(full,
                    scope = list(lower = null, upper = full), 
                    direction = "both")
 
+forward.select = step(null, 
+                      scope = list(lower = null, upper = full), 
+                      direction = "both")
+
 terms = names(both.select$coefficients)
 terms = terms[2:length(terms)]
 terms = append(terms, c("Name"))
 
+fwd.terms = names(forward.select$coefficients)
+
+
+lm1 = lm(Actual ~ Salary + LISO + RwOBA + xFIP + xWOBA + Pt...K + xL.1 + 
+            LwOBA.1 + LISO.1 + RISO.1 + GP.1 + xFIP.1 + LwOBA.2 + RK.9.2 + 
+            xWOBA.2 + xK.9.2 + LwOBA.3 + RwOBA.3 + RK.9.3 + SIERA.3 + 
+            Away + Season.Avg + Season.Ceiling + Saber.Projection + Five.Day.Trend,
+          data = train.df)
+
+lm2 = lm(Actual ~ Salary + O.U + Total + LISO + RwOBA + GP + xFIP + xWOBA + 
+           Pt...K + xL.1 + LwOBA.1 + LISO.1 + RISO.1 + GP.1 + xFIP.1 + 
+           LwOBA.2 + RK.9.2 + xWOBA.2 + xK.9.2 + LwOBA.3 + RwOBA.3 + 
+           RK.9.3 + GP.3 + SIERA.3 + Away + Season.Avg + Season.Ceiling + 
+           Saber.Projection + Total:Away,
+          data = train.df)
+
+anova(lm1, lm2, test = "F")
 
 ## First layer models
 
@@ -54,6 +75,14 @@ mlb.lme = lme(Actual ~ Salary + LISO + RwOBA + xFIP + xWOBA + Pt...K + xL.1 +
                 Away + Season.Avg + Season.Ceiling + Saber.Projection, 
               random = ~ 1 | Name,
               data = train.df)
+
+mlb.lme2 = lme(Actual ~ Salary + O.U + Total + LISO + RwOBA + GP + xFIP + xWOBA + 
+                 Pt...K + xL.1 + LwOBA.1 + LISO.1 + RISO.1 + GP.1 + xFIP.1 + 
+                 LwOBA.2 + RK.9.2 + xWOBA.2 + xK.9.2 + LwOBA.3 + RwOBA.3 + 
+                 RK.9.3 + GP.3 + SIERA.3 + Away + Season.Avg + Season.Ceiling + 
+                 Saber.Projection + Diff.1 + Diff.2 + Diff.3 + Diff.4 + Five.Day.Trend,
+               random = ~ 1 |Name,
+               data = train.df)
 
 # Mixed effects tree
 
@@ -88,4 +117,51 @@ for(depth in c(2, 4, 6)) {
   prediction = predict(out, test, id = "Name")
   print(mse(test.df, prediction[[1]]))
 }
+
+# Bayesian mixed effects model
+
+blme.mod = blmer(Actual ~ Salary + LISO + RwOBA + xFIP + xWOBA + Pt...K + xL.1 + 
+                  LwOBA.1 + LISO.1 + RISO.1 + GP.1 + xFIP.1 + LwOBA.2 + RK.9.2 + 
+                  xWOBA.2 + xK.9.2 + LwOBA.3 + RwOBA.3 + RK.9.3 + SIERA.3 + 
+                  Away + Season.Avg + Season.Ceiling + Saber.Projection + (1|Name),
+                 REML = FALSE,
+                data = train.df)
+
+# Second layer model
+
+train.df$Linear.Prediction = predict(mlb.lme, train.df)
+test.df$Linear.Prediction = predict(mlb.lme, test.df)
+
+for(i in 1:nrow(test.df)) {
+  if(is.na(test.df[i, "Linear.Prediction"])) {
+    test.df[i, "Linear.Prediction"] = test.df[i, "Saber.Projection"]
+  }
+}
+
+test.a = which(train.df$Date < 85)
+test.b = which(train.df$Date < 90)
+test.c = which(train.df$Date < 95)
+
+holdout.a = which(train.df$Date >= 85 & train.df$Date < 90)
+holdout.b = which(train.df$Date >= 90 & train.df$Date < 95)
+holdout.c = which(train.df$Date >= 95 & train.df$Date < 100)
+
+fit.on = list(rs1 = test.a,
+              rs2 = test.b,
+              rs3 = test.c)
+
+pred.on = list(rs1 = holdout.a,
+               rs2 = holdout.b,
+               rs3 = holdout.c)
+
+cores = detectCores()
+cluster = makePSOCKcluster(cores)
+registerDoParallel(cluster)
+
+control = trainControl(method = "cv",
+                       index = fit.on,
+                       indexOut = pred.on,
+                       allowParallel = T,
+                       verboseIter = T,
+                       summaryFunction = defaultSummary)
 

@@ -15,6 +15,7 @@ end.date = "2018-07-31"
 train.df = create.dataset(path.nerd, path.roto.hitters,
                           path.swish, path.saber,
                           start.date, end.date, TRUE)
+
 train.df = impute.data(train.df)
 
 test.df = create.dataset(path.nerd, path.roto.hitters,
@@ -30,7 +31,7 @@ test.df = impute.data(test.df)
 
 
 null = lm(Actual ~ 1, data = train.df)
-full = lm(Actual ~ ., data = train.df)
+full = lm(Actual ~ .-Name, data = train.df)
 
 both.select = step(full, 
                    scope = list(lower = null, upper = full), 
@@ -60,6 +61,50 @@ mse = function(df, projected) {
   diff.sq = diff^2
   return(sum(diff.sq))
 }
+
+
+final.form = Salary + SalDiff + Total + ISO + AB.1 + AB.3 + K..3 + 
+  Last.5.Avg + Season.Ceiling + Saber.Projection + CS + Swish.Projection + 
+  Yesterday + Diff.2 + Diff.3 + Diff.4 + Five.Day.Trend
+
+fwd.form = Swish.Projection + Yesterday + Diff.1 + Saber.Projection + 
+  Last.5.Avg + Total + Five.Day.Trend + Roto.Projection + CS + 
+  ISO + K..3 + Diff.4 + Season.Ceiling + AB.1 + AB.3
+
+lm.a = lm(Actual ~ Salary + SalDiff + Total + ISO + AB.1 + AB.3 + K..3 + 
+            Last.5.Avg + Season.Ceiling + Saber.Projection + CS + Swish.Projection +
+          + Yesterday + Diff.2 + Diff.3 + Diff.4 + Five.Day.Trend, data = train.df)
+
+lm.b= lm(Actual ~ Swish.Projection + Yesterday + Diff.1 + Saber.Projection + 
+           Last.5.Avg + Total + Five.Day.Trend + CS + Roto.Projection +
+           ISO + K..3 + Diff.4 + Season.Ceiling + AB.1 + AB.3,
+         data = train.df)
+
+mlb.lme.a = lme(Actual ~ Salary + SalDiff + Total + ISO + AB.1 + AB.3 + K..3 + 
+                  Last.5.Avg + Season.Ceiling + Saber.Projection + CS + Swish.Projection +
+                  + Yesterday + Diff.2 + Diff.3 + Diff.4 + Five.Day.Trend,
+                data = train.df,
+                random = ~ 1 | Name)
+
+mlb.lme.b = lme(Actual ~ Swish.Projection + Yesterday + Diff.1 + Saber.Projection + 
+                  Last.5.Avg + Total + Five.Day.Trend + CS + Roto.Projection +
+                  ISO + K..3 + Diff.4 + Season.Ceiling + AB.1 + AB.3,
+                data = train.df,
+                random = ~ 1 | Name)
+
+mlb.lme.c = lme(Actual ~ Swish.Projection + Yesterday + Diff.1 + Saber.Projection + 
+                  Last.5.Avg + Total + Five.Day.Trend + CS + Roto.Projection +
+                  ISO + K..3 + Diff.4 + Season.Ceiling + AB.1 + AB.3,
+                data = train.df,
+                random = ~ Date | Name)
+
+blme.mod = blmer(Actual ~ Swish.Projection + Yesterday + Diff.1 + Saber.Projection + 
+                   Last.5.Avg + Total + Five.Day.Trend + CS + Roto.Projection +
+                   ISO + K..3 + Diff.4 + Season.Ceiling + AB.1 + AB.3 + (Date|Name),
+                 REML = FALSE,
+                 data = train.df,
+                 maxit = 100)
+
 
 ## First layer models
 

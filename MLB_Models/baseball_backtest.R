@@ -5,18 +5,13 @@
 source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
 
 # Overlaps to test
-overlaps = 4:7
+overlaps = 6:7
 
 # Salary cap
 salary.cap = 50000
 
 # Lineups to generate per entry
 num.lineups = 150
-
-# Paths to required folders
-path.hitters.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Hitters/hitter_DATE.csv"
-path.pitchers.proj = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Pitchers/pitcher_DATE.csv"
-path.players.actual = "C:/Users/Ming/Documents/Fantasy_Models/Actual_Scores_MLB/players_DATE.csv"
 
 # Run backtesting 
 results = backtest(overlaps, salary.cap,
