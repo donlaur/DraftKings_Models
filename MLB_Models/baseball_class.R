@@ -115,7 +115,7 @@ setup.model = function(hitters, pitchers, lineups, num.overlap,
   
   constraints              = list.append(constraints, team.size)
   
-  model$sense              = append(model$sense, c("="))
+  model$sense              = append(model$sense, c(">"))
   model$rhs                = append(model$rhs, c(2))
   
   # Players must come from at least two different games
@@ -168,7 +168,7 @@ setup.model = function(hitters, pitchers, lineups, num.overlap,
   qc1           = list()
   qc1$Qc        = sparse.consecutive.matrix
   qc1$sense     = ">"
-  qc1$rhs       = 20
+  qc1$rhs       = 24
   
   model$quadcon = list(qc1)
   
