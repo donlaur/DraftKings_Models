@@ -168,7 +168,7 @@ setup.model = function(hitters, pitchers, lineups, num.overlap,
   qc1           = list()
   qc1$Qc        = sparse.consecutive.matrix
   qc1$sense     = ">"
-  qc1$rhs       = 24
+  qc1$rhs       = 26
   
   model$quadcon = list(qc1)
   
@@ -488,7 +488,7 @@ backtest = function(overlaps, salary.cap,
         
         for(a in c(0.2, 0.4, 0.6, 0.8)) {
           for(b in c(0.2, 0.4, 0.6, 0.8)) {
-            df     = create_lineups(num.lineups, num.overlap, setup.model, objective.g,
+            df     = create_lineups(num.lineups, num.overlap, setup.model, objective.b,
                                     salary.cap, hitters.proj, pitchers.proj, a, b, 
                                     0, 0, F)
             
