@@ -19,18 +19,18 @@ def main():
 	url_pitchers = "https://rotogrinders.com/projected-stats/mlb-pitcher?site=draftkings&date="
 	url_hitters = "https://rotogrinders.com/projected-stats/mlb-hitter?site=draftkings&date="
 	# Write CSV files to this folder: change this
-	out_hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters"
-	out_pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers"
+	out_hitters = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Hitters_New"
+	out_pitchers = "C:/Users/Ming/Documents/Fantasy_Models/Historical_Projections_MLB/Roto_Pitchers_New"
 
 	year = 2018
-	months = range(4, 9)
-	days = {4:30, 5:31, 6:30, 7:31, 8:4}
+	months = range(4, 8)
+	days = {4:30, 5:31, 6:30, 7:31, 8:31}
 
 	select(url = url_pitchers, out = out_pitchers, year = year, months = months, days = days, player_type = "pitcher")
 
 def select(url, out, year, months, days, player_type):
 	# Initialize Chromedriver
-	driver = webdriver.Chrome()
+	driver = webdriver.Chrome("C:/Users/Ming/ChromeDriver/chromedriver.exe")
 
 	for month in months:
 		num_days = days[month]
@@ -58,11 +58,12 @@ def select(url, out, year, months, days, player_type):
 				old_text = "".join(map(lambda x: x.text, old_columns[start:end]))
 
 				last_two = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = 'last-two']")))
+				twelve_weeks = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '12weeks']")))
 				four_weeks = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '4weeks']")))
 				two_weeks = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '2weeks']")))
 				one_week = wait.until(EC.element_to_be_clickable((By.XPATH, "//select/option[@value = '1week']")))
 
-				options = [one_week, two_weeks, four_weeks, last_two]
+				options = [one_week, two_weeks, four_weeks, twelve_weeks, last_two]
 
 				final_content = []
 
@@ -74,12 +75,13 @@ def select(url, out, year, months, days, player_type):
 					new_columns = driver.find_elements_by_xpath("//div[@class = 'rgt-col']")
 					new_text = "".join(map(lambda x: x.text, new_columns[start:end]))
 					counter = 0
+					
 					while old_text == new_text:
-						time.sleep(2)
+						time.sleep(1)
 						new_columns = driver.find_elements_by_xpath("//div[@class = 'rgt-col']")
 						new_text = "".join(map(lambda x: x.text, new_columns[start:end]))
 						counter = counter + 1
-						if counter == 25:
+						if counter == 5:
 							raise Exception("Timed out!")
 
 					if not final_content:
@@ -96,7 +98,6 @@ def select(url, out, year, months, days, player_type):
 					old_text = new_text
 
 				rows = zip(*final_content)
-
 				file_name = "{}.csv".format(player_type + "_" + t)
 				os.chdir(out)
 				with open(file_name, "ab") as file:

@@ -56,21 +56,23 @@ objective.c = function(model, hitters, pitchers,
   obj.a = append(hitters[,"Projection"], pitchers[,"Projection"])
   obj.a = append(obj.a, rep(0, num.teams + num.games))
   
-  obj.b = append(hitters[,"Sigma"], pitchers[,"Sigma"])
+  obj.b = append(hitters[,"Sigma"], rep(0, nrow(pitchers)))
   obj.b = append(obj.b, rep(0, num.teams + num.games))
   
-  Set            = list(obj.a, obj.b)
-  SetObjPriority = c(2,1)
-  SetObjWeight   = c(1.0, weight.c)
+  obj.c = append(rep(0, nrow(hitters)), pitchers[,"Sigma"])
+  obj.c = append(obj.c, rep(0, num.teams + num.games))
+  
+  Set            = list(obj.a, obj.b, obj.c)
+  SetObjPriority = c(2, 1, 1)
+  SetObjWeight   = c(1.0, weight.c, weight.d)
   
   model$multiobj  = list()
-  for (m in 1:2) {
+  for (m in 1:length(Set)) {
     model$multiobj[[m]]          = list()
     model$multiobj[[m]]$objn     = Set[[m]]
     model$multiobj[[m]]$priority = SetObjPriority[m]
     model$multiobj[[m]]$weight   = SetObjWeight[m]
     model$multiobj[[m]]$abstol   = m
-    model$multiobj[[m]]$reltol   = weight.d
     model$multiobj[[m]]$con      = 0.0
   }
   

@@ -222,7 +222,7 @@ is.consecutive = function(hitters, i, j) {
     return(TRUE)
   }
   else if(abs((max(hitters[i, "Order"], hitters[j, "Order"]) - 9) -
-          min(hitters[i, "Order"], hitters[j, "Order"])) <= 2) {
+              min(hitters[i, "Order"], hitters[j, "Order"])) <= 2) {
     return(TRUE)
   }
   return(FALSE)
@@ -348,7 +348,7 @@ create_lineups = function(num.lineups, num.overlap, formulation, objective,
   
   empty              = rep(0, num.hitters * num.hitters)
   consecutive.matrix = matrix(empty, nrow = num.hitters)
-
+  
   for(i in 1:num.hitters) {
     for(j in 1:num.hitters) {
       consecutive.matrix[i, j] = ifelse(is.consecutive(hitters, i, j), 1, 0)
@@ -446,7 +446,7 @@ get.scores = function(lineups, hitters, pitchers) {
     pitchers.indices = which(chosen.pitchers > 0.5)
     
     points[i]        = sum(hitters[hitters.indices, "Actual"]) +
-                       sum(pitchers[pitchers.indices, "Actual"])
+      sum(pitchers[pitchers.indices, "Actual"])
   }
   
   return(points)
@@ -470,8 +470,8 @@ backtest = function(overlaps, salary.cap,
   max.scores  = list()
   saber.files = list.files(path.saber)[360:460]
   dates       = lapply(saber.files, function(x) {
-                       unlist(strsplit(gsub("[A-z\\.]", "", x), 
-                                       split = " "))[1] })
+    unlist(strsplit(gsub("[A-z\\.]", "", x), 
+                    split = " "))[1] })
   for(overlap in overlaps) {
     for(d in 1:length(dates)) {
       tryCatch({
@@ -497,7 +497,7 @@ backtest = function(overlaps, salary.cap,
             print(max(scores))
           }
         }
-
+        
         max.scores = list.append(max.scores, name = df)
         names(max.scores)[which(names(max.scores) == "name")] =
           paste(toString(dim(read.csv(saber.file))[1]), toString(date), sep = "//")

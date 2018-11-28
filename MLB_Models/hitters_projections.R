@@ -1,7 +1,6 @@
 ## Playground for testing hitter models
 
 source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_class.R")
-source("C:/Users/Ming/Documents/Fantasy_Models/MLB_Models/baseball_dataset.R")
 
 
 ## Creating the training dataset
